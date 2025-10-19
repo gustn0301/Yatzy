@@ -3,78 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi Yatzy</title>
+    <title>Yatzy Online 1v1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-        }
-        .die {
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-        }
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        .die { transition: all 0.2s ease-in-out; cursor: pointer; }
         .die.kept {
-            border-color: #3b82f6; /* blue-500 */
+            border-color: #3b82f6;
             transform: scale(0.95);
             box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
         }
-        .score-row.clickable:hover {
-            background-color: #eff6ff; /* blue-50 */
-            cursor: pointer;
-        }
-        .score-row.scored {
-            color: #6b7280; /* gray-500 */
-            background-color: #f3f4f6; /* gray-100 */
-        }
-        .potential-score {
-            color: #3b82f6; /* blue-500 */
-            font-weight: 500;
-        }
-        .leaderboard-item.current-player {
-            background-color: #dbeafe; /* blue-100 */
-            border-left: 4px solid #3b82f6; /* blue-500 */
-        }
+        .score-row.clickable:hover { background-color: #eff6ff; cursor: pointer; }
+        .score-row.scored { color: #6b7280; background-color: #f3f4f6; }
+        .potential-score { color: #3b82f6; font-weight: 500; }
+        .leaderboard-item.current-player { background-color: #dbeafe; border-left: 4px solid #3b82f6; }
+        .hidden { display: none; }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
     <div class="w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
 
-        <!-- Setup Screen -->
+        <!-- Matchmaking Screen -->
         <div id="setup-screen">
-            <h1 class="text-4xl font-bold text-center text-gray-800">Yatzy!</h1>
-            <p class="text-center text-xl text-gray-600 mt-4 mb-8">플레이어 수를 선택하세요</p>
+            <h1 class="text-4xl font-bold text-center text-gray-800">Yatzy Online</h1>
+            <p class="text-center text-xl text-gray-600 mt-4 mb-8">다른 플레이어와 1v1 대전을 즐겨보세요!</p>
+            <div id="matchmaking-status" class="text-center my-4"></div>
             <div class="flex justify-center gap-4">
-                <button data-players="2" class="player-select-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">2명</button>
-                <button data-players="3" class="player-select-btn bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">3명</button>
-                <button data-players="4" class="player-select-btn bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">4명</button>
+                <button id="find-match-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">랜덤 매칭 찾기</button>
+            </div>
+             <div class="text-center mt-4 text-xs text-gray-500">
+                <p>내 플레이어 ID: <span id="player-id"></span></p>
             </div>
         </div>
 
-        <!-- Game Screen (Initially Hidden) -->
+        <!-- Game Screen -->
         <div id="game-screen" class="hidden">
-            <!-- Top Section: Title, Dice, Controls -->
             <header class="text-center mb-6">
-                <h1 class="text-4xl font-bold text-gray-800">Yatzy</h1>
+                <h1 class="text-4xl font-bold text-gray-800">Yatzy Online</h1>
                 <p id="turn-indicator" class="mt-2 text-2xl font-bold text-blue-600"></p>
                 <p id="message-area" class="mt-1 text-lg text-gray-600"></p>
-
                 <div id="dice-container" class="flex justify-center items-center gap-2 sm:gap-4 my-6 h-24"></div>
-
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <button id="roll-button" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                    <button id="roll-button" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md">
                         주사위 굴리기
                     </button>
                     <p class="text-xl font-medium text-gray-700">남은 횟수: <span id="rolls-left" class="font-bold text-blue-600">3</span></p>
                 </div>
             </header>
 
-            <!-- Bottom Section: Scoreboard & Leaderboard -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-t-2 border-gray-200 pt-6">
-                <!-- Current Player's Scoreboard -->
                 <div class="md:col-span-2 bg-gray-50 rounded-lg p-4">
                     <h2 id="scoreboard-title" class="text-2xl font-bold text-center mb-4 text-gray-700"></h2>
                     <table class="w-full text-sm sm:text-base">
@@ -90,17 +71,14 @@
                         </tfoot>
                     </table>
                 </div>
-
-                <!-- Leaderboard -->
                 <div class="md:col-span-1 bg-gray-50 rounded-lg p-4">
-                    <h2 class="text-2xl font-bold text-center mb-4 text-gray-700">리더보드</h2>
+                    <h2 class="text-2xl font-bold text-center mb-4 text-gray-700">현재 점수</h2>
                     <div id="leaderboard" class="space-y-2"></div>
                 </div>
             </div>
-            
             <div class="text-center mt-8">
-                <button id="new-game-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-sm">
-                    새 게임 시작
+                <button id="leave-game-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-sm">
+                    게임 나가기
                 </button>
             </div>
         </div>
@@ -112,269 +90,360 @@
             <h2 class="text-3xl font-bold mb-4">게임 종료!</h2>
             <div id="final-leaderboard" class="text-lg mb-6 space-y-2"></div>
             <p id="winner-message" class="text-2xl font-bold text-blue-600 mb-6"></p>
-            <button id="modal-new-game-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg">
-                다시하기
+            <button id="modal-new-game-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg">
+                새 매칭 찾기
             </button>
         </div>
     </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Game constants
-    const SCORE_CATEGORIES = {
-        upper: { aces: '1 (Aces)', twos: '2 (Twos)', threes: '3 (Threes)', fours: '4 (Fours)', fives: '5 (Fives)', sixes: '6 (Sixes)' },
-        lower: { threeOfAKind: '3 of a Kind', fourOfAKind: '4 of a Kind', fullHouse: 'Full House', smallStraight: 'Small Straight', largeStraight: 'Large Straight', yatzy: 'Yatzy', chance: 'Chance' }
+    
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc, onSnapshot, updateDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    
+    // This is a public configuration.
+    const firebaseConfig = {
+      apiKey: "AIzaSyDkQFPUAPnkMjbmLfNCaThbWQ0yzzrT7mU",
+      authDomain: "yatzy-online-3a321.firebaseapp.com",
+      projectId: "yatzy-online-3a321",
+      storageBucket: "yatzy-online-3a321.appspot.com",
+      messagingSenderId: "1085827487793",
+      appId: "1:1085827487793:web:2e40bb73e20dfba34b5d10"
     };
+    
+    try {
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    // DOM Elements
-    const setupScreen = document.getElementById('setup-screen');
-    const gameScreen = document.getElementById('game-screen');
-    const playerSelectBtns = document.querySelectorAll('.player-select-btn');
-    const diceContainer = document.getElementById('dice-container');
-    const rollButton = document.getElementById('roll-button');
-    const newGameButton = document.getElementById('new-game-button');
-    const rollsLeftSpan = document.getElementById('rolls-left');
-    const messageArea = document.getElementById('message-area');
-    const turnIndicator = document.getElementById('turn-indicator');
-    const scoreboardTitle = document.getElementById('scoreboard-title');
-    const leaderboard = document.getElementById('leaderboard');
-    const upperSectionBody = document.getElementById('upper-section-body');
-    const lowerSectionBody = document.getElementById('lower-section-body');
-    const gameOverModal = document.getElementById('game-over-modal');
-    const finalLeaderboard = document.getElementById('final-leaderboard');
-    const winnerMessageEl = document.getElementById('winner-message');
-    const modalNewGameButton = document.getElementById('modal-new-game-button');
+        // --- DOM Elements ---
+        const setupScreen = document.getElementById('setup-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const findMatchBtn = document.getElementById('find-match-btn');
+        const matchmakingStatus = document.getElementById('matchmaking-status');
+        const diceContainer = document.getElementById('dice-container');
+        const rollButton = document.getElementById('roll-button');
+        const leaderboard = document.getElementById('leaderboard');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const playerIdEl = document.getElementById('player-id');
+        const leaveGameButton = document.getElementById('leave-game-button');
+        const modalNewGameButton = document.getElementById('modal-new-game-button');
 
-    let state = {};
+        // --- Game State ---
+        let state = {};
+        let userId, myPlayerIndex, gameId;
+        let gameUnsubscribe = null, waitingUnsubscribe = null;
 
-    function init() {
-        gameScreen.classList.add('hidden');
-        setupScreen.classList.remove('hidden');
-        gameOverModal.classList.add('hidden');
-    }
-
-    function startGame(playerCount) {
-        const scores = Array.from({ length: playerCount }, () => {
-            const scoreSheet = {};
-            [...Object.keys(SCORE_CATEGORIES.upper), ...Object.keys(SCORE_CATEGORIES.lower)].forEach(id => {
-                scoreSheet[id] = null;
-            });
-            return scoreSheet;
-        });
-
-        state = {
-            playerCount,
-            dice: [1, 1, 1, 1, 1],
-            kept: [false, false, false, false, false],
-            rollsLeft: 3,
-            round: 1,
-            currentPlayer: 0,
-            scores,
-            isTurnStarted: false
+        const SCORE_CATEGORIES = {
+            upper: { aces: '1 (Aces)', twos: '2 (Twos)', threes: '3 (Threes)', fours: '4 (Fours)', fives: '5 (Fives)', sixes: '6 (Sixes)' },
+            lower: { threeOfAKind: '3 of a Kind', fourOfAKind: '4 of a Kind', fullHouse: 'Full House', smallStraight: 'Small Straight', largeStraight: 'Large Straight', yatzy: 'Yatzy', chance: 'Chance' }
         };
-
-        createScoreboardHTML();
-        setupScreen.classList.add('hidden');
-        gameScreen.classList.remove('hidden');
-        messageArea.textContent = "첫 턴입니다. 주사위를 굴리세요.";
-        updateUI();
-    }
-    
-    function createScoreboardHTML() {
-        let upperHTML = '', lowerHTML = '';
-        for (const [id, name] of Object.entries(SCORE_CATEGORIES.upper)) {
-            upperHTML += `<tr class="score-row" data-id="${id}"><td>${name}</td><td class="score text-right font-semibold"></td></tr>`;
-        }
-        for (const [id, name] of Object.entries(SCORE_CATEGORIES.lower)) {
-            lowerHTML += `<tr class="score-row" data-id="${id}"><td>${name}</td><td class="score text-right font-semibold"></td></tr>`;
-        }
-        upperSectionBody.innerHTML = upperHTML;
-        lowerSectionBody.innerHTML = lowerHTML;
         
-        // Add event listeners to the new rows
-        document.querySelectorAll('#game-screen .score-row').forEach(row => row.addEventListener('click', selectScore));
-    }
-
-    function updateUI() {
-        diceContainer.innerHTML = state.dice.map((val, i) => getDieHTML(val, i, state.kept[i])).join('');
-        rollsLeftSpan.textContent = state.rollsLeft;
-        turnIndicator.textContent = `라운드 ${state.round}/13 • Player ${state.currentPlayer + 1}의 턴`;
-        scoreboardTitle.textContent = `Player ${state.currentPlayer + 1} 점수판`;
-
-        updateScoresheet();
-        updateLeaderboard();
-        
-        rollButton.disabled = state.rollsLeft === 0 || state.round > 13;
-        rollButton.classList.toggle('opacity-50', rollButton.disabled);
-    }
-
-    function getDieHTML(value, index, isKept) {
-        const keptClass = isKept ? 'kept' : '';
-        const dots = [[],['<circle cx="50" cy="50" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="50" cy="50" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="50" cy="50" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="25" cy="50" r="8"/>','<circle cx="75" cy="50" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>']];
-        return `<div class="die w-14 h-14 sm:w-20 sm:h-20 bg-white rounded-lg shadow-md border-4 border-gray-200 flex items-center justify-center ${keptClass}" data-index="${index}"><svg viewBox="0 0 100 100" class="w-full h-full fill-current text-gray-800">${dots[value].join('')}</svg></div>`;
-    }
-
-    function calculateScores(dice) {
-        const counts = new Array(7).fill(0);
-        let sum = dice.reduce((s, d) => s + d, 0);
-        dice.forEach(d => { counts[d]++; });
-
-        const potential = {};
-        Object.keys(SCORE_CATEGORIES.upper).forEach((id, i) => {
-            potential[id] = counts[i+1] * (i+1);
+        // --- Authentication ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                userId = user.uid;
+                playerIdEl.textContent = userId.substring(0, 8);
+                findMatchBtn.disabled = false;
+            }
         });
+        await signInAnonymously(auth);
 
-        const countsValues = Object.values(counts);
-        potential.threeOfAKind = countsValues.some(c => c >= 3) ? sum : 0;
-        potential.fourOfAKind = countsValues.some(c => c >= 4) ? sum : 0;
-        potential.fullHouse = countsValues.includes(3) && countsValues.includes(2) ? 25 : 0;
-        potential.yatzy = countsValues.some(c => c >= 5) ? 50 : 0;
-        potential.chance = sum;
-        const uniqueDiceStr = Array.from(new Set(dice)).sort().join('');
-        potential.smallStraight = /1234|2345|3456/.test(uniqueDiceStr) ? 30 : 0;
-        potential.largeStraight = /12345|23456/.test(uniqueDiceStr) ? 40 : 0;
-        
-        return potential;
-    }
-    
-    function getPlayerTotal(playerIndex) {
-        const playerScores = state.scores[playerIndex];
-        let upperSubtotal = 0;
-        Object.keys(SCORE_CATEGORIES.upper).forEach(id => {
-            if (playerScores[id] !== null) upperSubtotal += playerScores[id];
-        });
-        const bonus = upperSubtotal >= 63 ? 35 : 0;
-        let total = upperSubtotal + bonus;
-        Object.keys(SCORE_CATEGORIES.lower).forEach(id => {
-            if (playerScores[id] !== null) total += playerScores[id];
-        });
-        return total;
-    }
-
-    function updateLeaderboard() {
-        const playerTotals = Array.from({ length: state.playerCount }, (_, i) => ({
-            player: i + 1,
-            score: getPlayerTotal(i)
-        })).sort((a, b) => b.score - a.score);
-
-        leaderboard.innerHTML = playerTotals.map(p => `
-            <div class="leaderboard-item flex justify-between items-center p-2 rounded ${p.player - 1 === state.currentPlayer ? 'current-player' : ''}">
-                <span class="font-bold text-lg">Player ${p.player}</span>
-                <span class="text-lg font-semibold">${p.score}</span>
-            </div>
-        `).join('');
-    }
-
-    function updateScoresheet() {
-        let upperSubtotal = 0;
-        const playerScores = state.scores[state.currentPlayer];
-        const potential = state.isTurnStarted ? calculateScores(state.dice) : {};
-
-        document.querySelectorAll('#game-screen .score-row').forEach(row => {
-            const id = row.dataset.id;
-            const scoreCell = row.querySelector('.score');
+        // --- UI Logic ---
+        function init() {
+            if (gameUnsubscribe) gameUnsubscribe();
+            if (waitingUnsubscribe) waitingUnsubscribe();
             
-            if (playerScores[id] !== null) {
-                scoreCell.textContent = playerScores[id];
-                scoreCell.classList.remove('potential-score');
-                row.classList.add('scored');
-                row.classList.remove('clickable');
+            gameScreen.classList.add('hidden');
+            setupScreen.classList.remove('hidden');
+            gameOverModal.classList.add('hidden');
+            findMatchBtn.disabled = false;
+            findMatchBtn.textContent = '랜덤 매칭 찾기';
+            matchmakingStatus.textContent = '';
+            state = {};
+            gameId = null;
+            myPlayerIndex = null;
+        }
+
+        async function findMatch() {
+            findMatchBtn.disabled = true;
+            matchmakingStatus.textContent = '상대를 찾고 있습니다...';
+            
+            const waitingRef = collection(db, "waitingRoom");
+            const q = query(waitingRef, where("playerId", "!=", userId));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const opponentDoc = querySnapshot.docs[0];
+                const opponentId = opponentDoc.id;
+
+                const newGameRef = doc(collection(db, "games"));
+                gameId = newGameRef.id;
+
+                const scoreSheet = () => {
+                    const sheet = {};
+                    Object.keys({...SCORE_CATEGORIES.upper, ...SCORE_CATEGORIES.lower}).forEach(id => { sheet[id] = null; });
+                    return sheet;
+                };
+
+                const initialGameState = {
+                    players: [opponentId, userId],
+                    playerNames: { [opponentId]: 'Player 1', [userId]: 'Player 2' },
+                    dice: [1, 2, 3, 4, 5], kept: [false, false, false, false, false],
+                    rollsLeft: 3, round: 1, currentPlayer: 0,
+                    scores: [scoreSheet(), scoreSheet()],
+                    isTurnStarted: false, status: 'active', createdAt: serverTimestamp()
+                };
+
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        transaction.delete(doc(db, "waitingRoom", opponentId));
+                        transaction.set(newGameRef, initialGameState);
+                    });
+                    joinGame(gameId);
+                } catch (e) {
+                    console.error("Transaction failed: ", e);
+                    init();
+                }
+
             } else {
-                scoreCell.textContent = state.isTurnStarted ? potential[id] : '';
-                scoreCell.classList.toggle('potential-score', state.isTurnStarted);
-                row.classList.remove('scored');
-                row.classList.toggle('clickable', state.isTurnStarted);
+                const myWaitingRef = doc(db, "waitingRoom", userId);
+                await setDoc(myWaitingRef, { playerId: userId, timestamp: serverTimestamp() });
+
+                waitingUnsubscribe = onSnapshot(myWaitingRef, (doc) => {
+                    if (!doc.exists()) { // Matched by someone else
+                         findGameAndJoin();
+                    }
+                });
             }
-             if (SCORE_CATEGORIES.upper[id] && playerScores[id] !== null) {
-                upperSubtotal += playerScores[id];
-            }
-        });
+        }
         
-        const bonus = upperSubtotal >= 63 ? 35 : 0;
-        document.getElementById('upper-subtotal').textContent = upperSubtotal;
-        document.getElementById('bonus').textContent = bonus;
-        document.getElementById('upper-total').textContent = upperSubtotal + bonus;
-        document.getElementById('grand-total').textContent = getPlayerTotal(state.currentPlayer);
-    }
-    
-    function rollDice() {
-        if (state.rollsLeft > 0) {
-            state.isTurnStarted = true;
-            state.rollsLeft--;
-            state.dice = state.dice.map((d, i) => state.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
-            messageArea.textContent = state.rollsLeft === 0 ? '점수 항목을 선택해야 합니다.' : '유지할 주사위를 클릭하고 다시 굴리세요.';
-            updateUI();
-        }
-    }
-
-    function toggleKeep(index) {
-        if (state.isTurnStarted && state.rollsLeft < 3) {
-            state.kept[index] = !state.kept[index];
-            updateUI();
-        }
-    }
-
-    function selectScore(e) {
-        const row = e.target.closest('.score-row');
-        if (!row || !state.isTurnStarted || row.classList.contains('scored')) return;
-
-        const id = row.dataset.id;
-        const potential = calculateScores(state.dice);
-        state.scores[state.currentPlayer][id] = potential[id];
-        switchTurn();
-    }
-    
-    function switchTurn() {
-        state.currentPlayer++;
-        if (state.currentPlayer >= state.playerCount) {
-            state.currentPlayer = 0;
-            state.round++;
+        async function findGameAndJoin() {
+            if (waitingUnsubscribe) waitingUnsubscribe();
+            const gamesRef = collection(db, "games");
+            const q = query(gamesRef, where("players", "array-contains", userId), where("status", "==", "active"));
+            const snapshot = await getDocs(q);
+            if(!snapshot.empty) {
+                const gameDoc = snapshot.docs[0];
+                joinGame(gameDoc.id);
+            }
         }
 
-        if (state.round > 13) {
-            endGame();
-            return;
+        function joinGame(newGameId) {
+            if (waitingUnsubscribe) waitingUnsubscribe();
+            gameId = newGameId;
+            setupScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+
+            if(gameUnsubscribe) gameUnsubscribe();
+            gameUnsubscribe = onSnapshot(doc(db, "games", gameId), (doc) => {
+                if (doc.exists()) {
+                    state = doc.data();
+                    myPlayerIndex = state.players.indexOf(userId);
+                    if(state.status === 'finished') {
+                        endGame(true); // Don't update doc if already finished
+                    } else {
+                        updateUI();
+                    }
+                } else {
+                    alert("상대가 게임을 떠났거나 게임이 종료되었습니다. 로비로 돌아갑니다.");
+                    init();
+                }
+            });
         }
 
-        state.rollsLeft = 3;
-        state.kept = [false, false, false, false, false];
-        state.isTurnStarted = false;
-        messageArea.textContent = `새로운 턴입니다. 주사위를 굴리세요.`;
-        updateUI();
-    }
+        function updateUI() {
+            if (!state || !state.players) return;
+            
+            document.getElementById('dice-container').innerHTML = state.dice.map((val, i) => getDieHTML(val, i, state.kept[i])).join('');
+            
+            const isMyTurn = state.currentPlayer === myPlayerIndex;
+            document.getElementById('rolls-left').textContent = state.rollsLeft;
+            document.getElementById('turn-indicator').textContent = `라운드 ${state.round}/13 • ${isMyTurn ? '내 턴' : '상대 턴'}`;
+            document.getElementById('scoreboard-title').textContent = `${isMyTurn ? '내' : '상대'} 점수판 (Player ${state.currentPlayer + 1})`;
+            document.getElementById('message-area').textContent = state.message || '';
 
-    function endGame() {
-        const finalTotals = Array.from({ length: state.playerCount }, (_, i) => ({
-            player: i + 1,
-            score: getPlayerTotal(i)
-        })).sort((a, b) => b.score - a.score);
+            rollButton.disabled = !isMyTurn || state.rollsLeft === 0 || state.isTurnStarted === false && state.rollsLeft < 3;
+            rollButton.classList.toggle('opacity-50', rollButton.disabled);
 
-        finalLeaderboard.innerHTML = finalTotals.map(p => `
-            <p>Player ${p.player}: <span class="font-bold text-xl">${p.score}</span>점</p>
-        `).join('');
-
-        if (finalTotals[0].score === finalTotals[1]?.score) {
-            winnerMessageEl.textContent = '무승부입니다!';
-        } else {
-            winnerMessageEl.textContent = `Player ${finalTotals[0].player}의 승리입니다!`;
+            updateScoresheet();
+            updateLeaderboard();
         }
 
-        gameOverModal.classList.remove('hidden');
+        function updateScoresheet() {
+            const displayPlayerIndex = state.currentPlayer;
+            const playerScores = state.scores[displayPlayerIndex];
+            const potential = state.isTurnStarted ? calculateScores(state.dice) : {};
+
+            let upperSubtotal = 0;
+            document.querySelectorAll('#game-screen .score-row').forEach(row => {
+                const id = row.dataset.id;
+                const scoreCell = row.querySelector('.score');
+                if (playerScores[id] !== null) {
+                    scoreCell.textContent = playerScores[id];
+                    scoreCell.classList.remove('potential-score');
+                    row.classList.add('scored', 'opacity-70');
+                    row.classList.remove('clickable');
+                } else {
+                    scoreCell.textContent = (state.isTurnStarted && state.currentPlayer === myPlayerIndex) ? potential[id] : '';
+                    scoreCell.classList.toggle('potential-score', state.isTurnStarted && state.currentPlayer === myPlayerIndex);
+                    row.classList.remove('scored', 'opacity-70');
+                    row.classList.toggle('clickable', state.isTurnStarted && state.currentPlayer === myPlayerIndex);
+                }
+                 if (SCORE_CATEGORIES.upper[id] && playerScores[id] !== null) {
+                    upperSubtotal += playerScores[id];
+                }
+            });
+            
+            const bonus = upperSubtotal >= 63 ? 35 : 0;
+            document.getElementById('upper-subtotal').textContent = upperSubtotal;
+            document.getElementById('bonus').textContent = bonus;
+            document.getElementById('upper-total').textContent = upperSubtotal + bonus;
+            document.getElementById('grand-total').textContent = getPlayerTotal(displayPlayerIndex);
+        }
+        
+        function updateLeaderboard() {
+            leaderboard.innerHTML = state.players.map((pId, i) => {
+                const name = (i === myPlayerIndex) ? '나' : '상대';
+                return `
+                <div class="leaderboard-item flex justify-between items-center p-2 rounded ${i === state.currentPlayer ? 'current-player' : ''}">
+                    <span class="font-bold text-lg">${name} (P${i+1})</span>
+                    <span class="text-lg font-semibold">${getPlayerTotal(i)}</span>
+                </div>
+            `}).join('');
+        }
+        
+        async function rollDice() {
+            if (state.currentPlayer !== myPlayerIndex || state.rollsLeft <= 0) return;
+            const newDice = state.dice.map((d, i) => state.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
+            await updateDoc(doc(db, "games", gameId), {
+                dice: newDice,
+                rollsLeft: state.rollsLeft - 1,
+                isTurnStarted: true,
+                message: state.rollsLeft - 1 > 0 ? "유지할 주사위를 선택하세요." : "점수를 기록할 항목을 선택하세요."
+            });
+        }
+
+        async function toggleKeep(index) {
+            if (state.currentPlayer !== myPlayerIndex || !state.isTurnStarted || state.rollsLeft === 3) return;
+            const newKept = [...state.kept];
+            newKept[index] = !newKept[index];
+            await updateDoc(doc(db, "games", gameId), { kept: newKept });
+        }
+
+        async function selectScore(e) {
+            const row = e.target.closest('.score-row');
+            if (!row || state.currentPlayer !== myPlayerIndex || !state.isTurnStarted || row.classList.contains('scored')) return;
+            
+            const id = row.dataset.id;
+            const potential = calculateScores(state.dice);
+            const newScores = [...state.scores];
+            newScores[myPlayerIndex][id] = potential[id];
+
+            let nextPlayer = state.currentPlayer + 1;
+            let nextRound = state.round;
+            if (nextPlayer >= state.players.length) {
+                nextPlayer = 0;
+                nextRound++;
+            }
+
+            if (nextRound > 13) {
+                await endGame();
+            } else {
+                 await updateDoc(doc(db, "games", gameId), {
+                    scores: newScores,
+                    currentPlayer: nextPlayer,
+                    round: nextRound,
+                    rollsLeft: 3,
+                    kept: [false, false, false, false, false],
+                    isTurnStarted: false,
+                    message: `Player ${nextPlayer + 1}의 턴입니다.`
+                });
+            }
+        }
+        
+        async function endGame(isFinishedByOpponent = false) {
+            const finalTotals = state.players.map((p, i) => ({ player: i + 1, name: i === myPlayerIndex ? "나" : "상대", score: getPlayerTotal(i) })).sort((a, b) => b.score - a.score);
+            document.getElementById('final-leaderboard').innerHTML = finalTotals.map(p => `<p>${p.name} (Player ${p.player}): <span class="font-bold text-xl">${p.score}</span>점</p>`).join('');
+
+            const winnerMessageEl = document.getElementById('winner-message');
+            if (finalTotals[0].score === finalTotals[1]?.score) {
+                winnerMessageEl.textContent = '무승부입니다!';
+            } else {
+                winnerMessageEl.textContent = `${finalTotals[0].name} (Player ${finalTotals[0].player})의 승리입니다!`;
+            }
+            
+            if(!isFinishedByOpponent) {
+                await updateDoc(doc(db, "games", gameId), { status: 'finished' });
+            }
+            gameOverModal.classList.remove('hidden');
+        }
+
+        function getDieHTML(value, index, isKept) { 
+            const keptClass = isKept ? 'kept' : '';
+            const dots = [[],['<circle cx="50" cy="50" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="50" cy="50" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="50" cy="50" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="25" cy="50" r="8"/>','<circle cx="75" cy="50" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>']];
+            return `<div class="die w-14 h-14 sm:w-20 sm:h-20 bg-white rounded-lg shadow-md border-4 border-gray-200 flex items-center justify-center ${keptClass}" data-index="${index}"><svg viewBox="0 0 100 100" class="w-full h-full fill-current text-gray-800">${dots[value].join('')}</svg></div>`;
+        }
+        function calculateScores(dice) {
+            const counts = new Array(7).fill(0); let sum = 0;
+            dice.forEach(d => { counts[d]++; sum += d; });
+            const potential = {};
+            Object.keys(SCORE_CATEGORIES.upper).forEach((id, i) => { potential[id] = counts[i+1] * (i+1); });
+            const countsValues = Object.values(counts);
+            potential.threeOfAKind = countsValues.some(c => c >= 3) ? sum : 0;
+            potential.fourOfAKind = countsValues.some(c => c >= 4) ? sum : 0;
+            potential.fullHouse = countsValues.includes(3) && countsValues.includes(2) ? 25 : 0;
+            potential.yatzy = countsValues.some(c => c >= 5) ? 50 : 0;
+            potential.chance = sum;
+            const uniqueDiceStr = Array.from(new Set(dice)).sort().join('');
+            potential.smallStraight = /1234|2345|3456/.test(uniqueDiceStr) ? 30 : 0;
+            potential.largeStraight = /12345|23456/.test(uniqueDiceStr) ? 40 : 0;
+            return potential;
+        }
+        function getPlayerTotal(playerIndex) {
+            if(!state.scores || !state.scores[playerIndex]) return 0;
+            const playerScores = state.scores[playerIndex]; let upperSubtotal = 0;
+            Object.keys(SCORE_CATEGORIES.upper).forEach(id => { if (playerScores[id] !== null) upperSubtotal += playerScores[id]; });
+            const bonus = upperSubtotal >= 63 ? 35 : 0; let total = upperSubtotal + bonus;
+            Object.keys(SCORE_CATEGORIES.lower).forEach(id => { if (playerScores[id] !== null) total += playerScores[id]; });
+            return total;
+        }
+
+        findMatchBtn.addEventListener('click', findMatch);
+        rollButton.addEventListener('click', rollDice);
+        diceContainer.addEventListener('click', e => {
+            const dieEl = e.target.closest('.die');
+            if (dieEl) toggleKeep(parseInt(dieEl.dataset.index));
+        });
+        document.querySelectorAll('#game-screen .score-row').forEach(row => row.addEventListener('click', selectScore));
+        leaveGameButton.addEventListener('click', async () => {
+            if (gameId) await deleteDoc(doc(db, "games", gameId));
+            init();
+        });
+        modalNewGameButton.addEventListener('click', init);
+        
+        createScoreboardHTML();
+        init();
+
+        function createScoreboardHTML() {
+            let upperHTML = '', lowerHTML = '';
+            for (const [id, name] of Object.entries(SCORE_CATEGORIES.upper)) {
+                upperHTML += `<tr class="score-row" data-id="${id}"><td>${name}</td><td class="score text-right font-semibold"></td></tr>`;
+            }
+            for (const [id, name] of Object.entries(SCORE_CATEGORIES.lower)) {
+                lowerHTML += `<tr class="score-row" data-id="${id}"><td>${name}</td><td class="score text-right font-semibold"></td></tr>`;
+            }
+            document.getElementById('upper-section-body').innerHTML = upperHTML;
+            document.getElementById('lower-section-body').innerHTML = lowerHTML;
+            document.querySelectorAll('#game-screen .score-row').forEach(row => row.addEventListener('click', selectScore));
+        }
+    } catch (error) {
+        console.error("Firebase 초기화 오류:", error);
+        document.body.innerHTML = `<div class="p-4 text-red-700 bg-red-100 rounded-lg">Firebase 설정에 오류가 발생했습니다. 프로젝트 ID가 고유한지, API 키가 올바른지 확인해주세요. 자세한 내용은 콘솔을 확인하세요.</div>`;
     }
-
-    // Event Listeners
-    playerSelectBtns.forEach(btn => btn.addEventListener('click', () => startGame(parseInt(btn.dataset.players))));
-    rollButton.addEventListener('click', rollDice);
-    diceContainer.addEventListener('click', e => {
-        const dieEl = e.target.closest('.die');
-        if (dieEl) toggleKeep(parseInt(dieEl.dataset.index));
-    });
-    newGameButton.addEventListener('click', init);
-    modalNewGameButton.addEventListener('click', init);
-
-    init();
-});
 </script>
 
 </body>
 </html>
+
+
