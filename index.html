@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yatzy for 2-4 Players</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .die {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .die.kept {
+            border-color: #3b82f6; /* blue-500 */
+            transform: scale(0.95);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        .score-row.clickable:hover {
+            background-color: #eff6ff; /* blue-50 */
+            cursor: pointer;
+        }
+        .score-row.scored {
+            color: #6b7280; /* gray-500 */
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        .potential-score {
+            color: #3b82f6; /* blue-500 */
+            font-weight: 500;
+        }
+        .leaderboard-item.current-player {
+            background-color: #dbeafe; /* blue-100 */
+            border-left: 4px solid #3b82f6; /* blue-500 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+
+        <!-- Setup Screen -->
+        <div id="setup-screen">
+            <h1 class="text-4xl font-bold text-center text-gray-800">Yatzy!</h1>
+            <p class="text-center text-xl text-gray-600 mt-4 mb-8">플레이어 수를 선택하세요</p>
+            <div class="flex justify-center gap-4">
+                <button data-players="2" class="player-select-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">2명</button>
+                <button data-players="3" class="player-select-btn bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">3명</button>
+                <button data-players="4" class="player-select-btn bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">4명</button>
+            </div>
+        </div>
+
+        <!-- Game Screen (Initially Hidden) -->
+        <div id="game-screen" class="hidden">
+            <!-- Top Section: Title, Dice, Controls -->
+            <header class="text-center mb-6">
+                <h1 class="text-4xl font-bold text-gray-800">Yatzy</h1>
+                <p id="turn-indicator" class="mt-2 text-2xl font-bold text-blue-600"></p>
+                <p id="message-area" class="mt-1 text-lg text-gray-600"></p>
+
+                <div id="dice-container" class="flex justify-center items-center gap-2 sm:gap-4 my-6 h-24"></div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <button id="roll-button" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                        주사위 굴리기
+                    </button>
+                    <p class="text-xl font-medium text-gray-700">남은 횟수: <span id="rolls-left" class="font-bold text-blue-600">3</span></p>
+                </div>
+            </header>
+
+            <!-- Bottom Section: Scoreboard & Leaderboard -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-t-2 border-gray-200 pt-6">
+                <!-- Current Player's Scoreboard -->
+                <div class="md:col-span-2 bg-gray-50 rounded-lg p-4">
+                    <h2 id="scoreboard-title" class="text-2xl font-bold text-center mb-4 text-gray-700"></h2>
+                    <table class="w-full text-sm sm:text-base">
+                        <tbody id="upper-section-body"></tbody>
+                        <tbody class="border-t-2 border-gray-300">
+                            <tr><td class="font-bold">상단 합계</td><td id="upper-subtotal" class="text-right font-bold">0</td></tr>
+                            <tr><td>보너스 (+35)</td><td id="bonus" class="text-right font-bold">0</td></tr>
+                            <tr class="bg-gray-200"><td class="font-bold">상단 총점</td><td id="upper-total" class="text-right font-bold">0</td></tr>
+                        </tbody>
+                        <tbody id="lower-section-body" class="border-t-2 border-gray-300"></tbody>
+                        <tfoot class="border-t-2 border-gray-300">
+                            <tr class="bg-blue-100"><td class="text-xl font-bold">총점</td><td id="grand-total" class="text-xl text-right font-bold">0</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Leaderboard -->
+                <div class="md:col-span-1 bg-gray-50 rounded-lg p-4">
+                    <h2 class="text-2xl font-bold text-center mb-4 text-gray-700">리더보드</h2>
+                    <div id="leaderboard" class="space-y-2"></div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-8">
+                <button id="new-game-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-sm">
+                    새 게임 시작
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Over Modal -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-8 text-center shadow-2xl">
+            <h2 class="text-3xl font-bold mb-4">게임 종료!</h2>
+            <div id="final-leaderboard" class="text-lg mb-6 space-y-2"></div>
+            <p id="winner-message" class="text-2xl font-bold text-blue-600 mb-6"></p>
+            <button id="modal-new-game-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg">
+                다시하기
+            </button>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Game constants
+    const SCORE_CATEGORIES = {
+        upper: { aces: '1 (Aces)', twos: '2 (Twos)', threes: '3 (Threes)', fours: '4 (Fours)', fives: '5 (Fives)', sixes: '6 (Sixes)' },
+        lower: { threeOfAKind: '3 of a Kind', fourOfAKind: '4 of a Kind', fullHouse: 'Full House', smallStraight: 'Small Straight', largeStraight: 'Large Straight', yatzy: 'Yatzy', chance: 'Chance' }
+    };
+
+    // DOM Elements
+    const setupScreen = document.getElementById('setup-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const playerSelectBtns = document.querySelectorAll('.player-select-btn');
+    const diceContainer = document.getElementById('dice-container');
+    const rollButton = document.getElementById('roll-button');
+    const newGameButton = document.getElementById('new-game-button');
+    const rollsLeftSpan = document.getElementById('rolls-left');
+    const messageArea = document.getElementById('message-area');
+    const turnIndicator = document.getElementById('turn-indicator');
+    const scoreboardTitle = document.getElementById('scoreboard-title');
+    const leaderboard = document.getElementById('leaderboard');
+    const upperSectionBody = document.getElementById('upper-section-body');
+    const lowerSectionBody = document.getElementById('lower-section-body');
+    const gameOverModal = document.getElementById('game-over-modal');
+    const finalLeaderboard = document.getElementById('final-leaderboard');
+    const winnerMessageEl = document.getElementById('winner-message');
+    const modalNewGameButton = document.getElementById('modal-new-game-button');
+
+    let state = {};
+
+    function init() {
+        gameScreen.classList.add('hidden');
+        setupScreen.classList.remove('hidden');
+        gameOverModal.classList.add('hidden');
+    }
+
+    function startGame(playerCount) {
+        const scores = Array.from({ length: playerCount }, () => {
+            const scoreSheet = {};
+            [...Object.keys(SCORE_CATEGORIES.upper), ...Object.keys(SCORE_CATEGORIES.lower)].forEach(id => {
+                scoreSheet[id] = null;
+            });
+            return scoreSheet;
+        });
+
+        state = {
+            playerCount,
+            dice: [1, 1, 1, 1, 1],
+            kept: [false, false, false, false, false],
+            rollsLeft: 3,
+            round: 1,
+            currentPlayer: 0,
+            scores,
+            isTurnStarted: false
+        };
+
+        createScoreboardHTML();
+        setupScreen.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+        messageArea.textContent = "첫 턴입니다. 주사위를 굴리세요.";
+        updateUI();
+    }
+    
+    function createScoreboardHTML() {
+        let upperHTML = '', lowerHTML = '';
+        for (const [id, name] of Object.entries(SCORE_CATEGORIES.upper)) {
+            upperHTML += `<tr class="score-row" data-id="${id}"><td>${name}</td><td class="score text-right font-semibold"></td></tr>`;
+        }
+        for (const [id, name] of Object.entries(SCORE_CATEGORIES.lower)) {
+            lowerHTML += `<tr class="score-row" data-id="${id}"><td>${name}</td><td class="score text-right font-semibold"></td></tr>`;
+        }
+        upperSectionBody.innerHTML = upperHTML;
+        lowerSectionBody.innerHTML = lowerHTML;
+        
+        // Add event listeners to the new rows
+        document.querySelectorAll('#game-screen .score-row').forEach(row => row.addEventListener('click', selectScore));
+    }
+
+    function updateUI() {
+        diceContainer.innerHTML = state.dice.map((val, i) => getDieHTML(val, i, state.kept[i])).join('');
+        rollsLeftSpan.textContent = state.rollsLeft;
+        turnIndicator.textContent = `라운드 ${state.round}/13 • Player ${state.currentPlayer + 1}의 턴`;
+        scoreboardTitle.textContent = `Player ${state.currentPlayer + 1} 점수판`;
+
+        updateScoresheet();
+        updateLeaderboard();
+        
+        rollButton.disabled = state.rollsLeft === 0 || state.round > 13;
+        rollButton.classList.toggle('opacity-50', rollButton.disabled);
+    }
+
+    function getDieHTML(value, index, isKept) {
+        const keptClass = isKept ? 'kept' : '';
+        const dots = [[],['<circle cx="50" cy="50" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="50" cy="50" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="50" cy="50" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="25" cy="50" r="8"/>','<circle cx="75" cy="50" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>']];
+        return `<div class="die w-14 h-14 sm:w-20 sm:h-20 bg-white rounded-lg shadow-md border-4 border-gray-200 flex items-center justify-center ${keptClass}" data-index="${index}"><svg viewBox="0 0 100 100" class="w-full h-full fill-current text-gray-800">${dots[value].join('')}</svg></div>`;
+    }
+
+    function calculateScores(dice) {
+        const counts = new Array(7).fill(0);
+        let sum = dice.reduce((s, d) => s + d, 0);
+        dice.forEach(d => { counts[d]++; });
+
+        const potential = {};
+        Object.keys(SCORE_CATEGORIES.upper).forEach((id, i) => {
+            potential[id] = counts[i+1] * (i+1);
+        });
+
+        const countsValues = Object.values(counts);
+        potential.threeOfAKind = countsValues.some(c => c >= 3) ? sum : 0;
+        potential.fourOfAKind = countsValues.some(c => c >= 4) ? sum : 0;
+        potential.fullHouse = countsValues.includes(3) && countsValues.includes(2) ? 25 : 0;
+        potential.yatzy = countsValues.some(c => c >= 5) ? 50 : 0;
+        potential.chance = sum;
+        const uniqueDiceStr = Array.from(new Set(dice)).sort().join('');
+        potential.smallStraight = /1234|2345|3456/.test(uniqueDiceStr) ? 30 : 0;
+        potential.largeStraight = /12345|23456/.test(uniqueDiceStr) ? 40 : 0;
+        
+        return potential;
+    }
+    
+    function getPlayerTotal(playerIndex) {
+        const playerScores = state.scores[playerIndex];
+        let upperSubtotal = 0;
+        Object.keys(SCORE_CATEGORIES.upper).forEach(id => {
+            if (playerScores[id] !== null) upperSubtotal += playerScores[id];
+        });
+        const bonus = upperSubtotal >= 63 ? 35 : 0;
+        let total = upperSubtotal + bonus;
+        Object.keys(SCORE_CATEGORIES.lower).forEach(id => {
+            if (playerScores[id] !== null) total += playerScores[id];
+        });
+        return total;
+    }
+
+    function updateLeaderboard() {
+        const playerTotals = Array.from({ length: state.playerCount }, (_, i) => ({
+            player: i + 1,
+            score: getPlayerTotal(i)
+        })).sort((a, b) => b.score - a.score);
+
+        leaderboard.innerHTML = playerTotals.map(p => `
+            <div class="leaderboard-item flex justify-between items-center p-2 rounded ${p.player - 1 === state.currentPlayer ? 'current-player' : ''}">
+                <span class="font-bold text-lg">Player ${p.player}</span>
+                <span class="text-lg font-semibold">${p.score}</span>
+            </div>
+        `).join('');
+    }
+
+    function updateScoresheet() {
+        let upperSubtotal = 0;
+        const playerScores = state.scores[state.currentPlayer];
+        const potential = state.isTurnStarted ? calculateScores(state.dice) : {};
+
+        document.querySelectorAll('#game-screen .score-row').forEach(row => {
+            const id = row.dataset.id;
+            const scoreCell = row.querySelector('.score');
+            
+            if (playerScores[id] !== null) {
+                scoreCell.textContent = playerScores[id];
+                scoreCell.classList.remove('potential-score');
+                row.classList.add('scored');
+                row.classList.remove('clickable');
+            } else {
+                scoreCell.textContent = state.isTurnStarted ? potential[id] : '';
+                scoreCell.classList.toggle('potential-score', state.isTurnStarted);
+                row.classList.remove('scored');
+                row.classList.toggle('clickable', state.isTurnStarted);
+            }
+             if (SCORE_CATEGORIES.upper[id] && playerScores[id] !== null) {
+                upperSubtotal += playerScores[id];
+            }
+        });
+        
+        const bonus = upperSubtotal >= 63 ? 35 : 0;
+        document.getElementById('upper-subtotal').textContent = upperSubtotal;
+        document.getElementById('bonus').textContent = bonus;
+        document.getElementById('upper-total').textContent = upperSubtotal + bonus;
+        document.getElementById('grand-total').textContent = getPlayerTotal(state.currentPlayer);
+    }
+    
+    function rollDice() {
+        if (state.rollsLeft > 0) {
+            state.isTurnStarted = true;
+            state.rollsLeft--;
+            state.dice = state.dice.map((d, i) => state.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
+            messageArea.textContent = state.rollsLeft === 0 ? '점수 항목을 선택해야 합니다.' : '유지할 주사위를 클릭하고 다시 굴리세요.';
+            updateUI();
+        }
+    }
+
+    function toggleKeep(index) {
+        if (state.isTurnStarted && state.rollsLeft < 3) {
+            state.kept[index] = !state.kept[index];
+            updateUI();
+        }
+    }
+
+    function selectScore(e) {
+        const row = e.target.closest('.score-row');
+        if (!row || !state.isTurnStarted || row.classList.contains('scored')) return;
+
+        const id = row.dataset.id;
+        const potential = calculateScores(state.dice);
+        state.scores[state.currentPlayer][id] = potential[id];
+        switchTurn();
+    }
+    
+    function switchTurn() {
+        state.currentPlayer++;
+        if (state.currentPlayer >= state.playerCount) {
+            state.currentPlayer = 0;
+            state.round++;
+        }
+
+        if (state.round > 13) {
+            endGame();
+            return;
+        }
+
+        state.rollsLeft = 3;
+        state.kept = [false, false, false, false, false];
+        state.isTurnStarted = false;
+        messageArea.textContent = `새로운 턴입니다. 주사위를 굴리세요.`;
+        updateUI();
+    }
+
+    function endGame() {
+        const finalTotals = Array.from({ length: state.playerCount }, (_, i) => ({
+            player: i + 1,
+            score: getPlayerTotal(i)
+        })).sort((a, b) => b.score - a.score);
+
+        finalLeaderboard.innerHTML = finalTotals.map(p => `
+            <p>Player ${p.player}: <span class="font-bold text-xl">${p.score}</span>점</p>
+        `).join('');
+
+        if (finalTotals[0].score === finalTotals[1]?.score) {
+            winnerMessageEl.textContent = '무승부입니다!';
+        } else {
+            winnerMessageEl.textContent = `Player ${finalTotals[0].player}의 승리입니다!`;
+        }
+
+        gameOverModal.classList.remove('hidden');
+    }
+
+    // Event Listeners
+    playerSelectBtns.forEach(btn => btn.addEventListener('click', () => startGame(parseInt(btn.dataset.players))));
+    rollButton.addEventListener('click', rollDice);
+    diceContainer.addEventListener('click', e => {
+        const dieEl = e.target.closest('.die');
+        if (dieEl) toggleKeep(parseInt(dieEl.dataset.index));
+    });
+    newGameButton.addEventListener('click', init);
+    modalNewGameButton.addEventListener('click', init);
+
+    init();
+});
+</script>
+
+</body>
+</html>
