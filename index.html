@@ -175,7 +175,7 @@
 
             if (!querySnapshot.empty) {
                 const opponentDoc = querySnapshot.docs[0];
-                const opponentId = opponentDoc.id;
+                const opponentId = opponentDoc.id; // 매칭을 먼저 시작해서 기다리고 있던 상대방(Player 1)
 
                 const newGameRef = doc(collection(db, "games"));
                 gameId = newGameRef.id;
@@ -187,10 +187,11 @@
                 };
 
                 const initialGameState = {
+                    // 매칭을 먼저 시작한 사람(opponentId)이 Player 1 (index 0)이 됩니다.
                     players: [opponentId, userId],
                     playerNames: { [opponentId]: 'Player 1', [userId]: 'Player 2' },
                     dice: [1, 2, 3, 4, 5], kept: [false, false, false, false, false],
-                    rollsLeft: 3, round: 1, currentPlayer: 0,
+                    rollsLeft: 3, round: 1, currentPlayer: 0, // 게임은 Player 1부터 시작합니다.
                     scores: [scoreSheet(), scoreSheet()],
                     isTurnStarted: false, status: 'active', createdAt: serverTimestamp()
                 };
@@ -445,5 +446,4 @@
 
 </body>
 </html>
-
 
