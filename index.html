@@ -1,539 +1,530 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yatzy Online 1v1</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-
-<!-- Favicon -->
-<link rel="icon" href="https://img.icons8.com/color/48/dice.png" type="image/png">
-<style>
-body {
-font-family: 'Noto Sans KR', sans-serif;
-/* 네온사인 느낌의 배경 */
-background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-background-size: 400% 400%;
-animation: gradient-animation 15s ease infinite;
-}
-@keyframes gradient-animation {
-0% { background-position: 0% 50%; }
-50% { background-position: 100% 50%; }
-100% { background-position: 0% 50%; }
-}
-.die { transition: all 0.2s ease-in-out; cursor: pointer; }
-.die.kept {
-border-color: #3b82f6;
-transform: scale(0.95);
-box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-}
-.score-row.clickable:hover { background-color: #eff6ff; cursor: pointer; }
-.score-row.scored { color: #6b7280; background-color: #f3f4f6; }
-.potential-score { color: #3b82f6; font-weight: 500; }
-.leaderboard-item.current-player { background-color: #dbeafe; border-left: 4px solid #3b82f6; }
-.hidden { display: none; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yatzy Online 1v1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="https://img.icons8.com/color/48/dice.png" type="image/png">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            /* 네온사인 느낌의 배경 */
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient-animation 15s ease infinite;
+        }
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .die { transition: all 0.2s ease-in-out; cursor: pointer; }
+        .die.kept {
+            border-color: #3b82f6;
+            transform: scale(0.95);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        .score-row.clickable:hover { background-color: #eff6ff; cursor: pointer; }
+        .score-row.scored { color: #6b7280; background-color: #f3f4f6; }
+        .potential-score { color: #3b82f6; font-weight: 500; }
+        .leaderboard-item.current-player { background-color: #dbeafe; border-left: 4px solid #3b82f6; }
+        .hidden { display: none; }
+    </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-<div class="w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 relative">
+    <div class="w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 relative">
 
-<!-- Matchmaking Screen -->
-<div id="setup-screen">
-<div class="flex justify-center items-center relative mb-4">
-<h1 class="text-4xl font-bold text-center text-gray-800">Yatzy Online</h1>
-<button id="show-rules-btn-setup" class="absolute right-0 top-0 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">게임 방법</button>
-</div>
-<p class="text-center text-xl text-gray-600 mt-4 mb-8">다른 플레이어와 1v1 대전을 즐겨보세요!</p>
-<div id="matchmaking-status" class="text-center my-4"></div>
-<div class="flex flex-col sm:flex-row justify-center gap-4">
-<button id="find-match-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">랜덤 매칭 찾기</button>
-<button id="start-ai-btn" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">AI와 대전하기</button>
-<button id="cancel-match-btn" class="hidden bg-gray-500 hover:bg-gray-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md">매칭 취소</button>
-</div>
-<div class="text-center mt-4 text-xs text-gray-500">
-<p>내 플레이어 ID: <span id="player-id"></span></p>
-</div>
-</div>
+        <!-- Matchmaking Screen -->
+        <div id="setup-screen">
+            <div class="flex justify-center items-center relative mb-4">
+                <h1 class="text-4xl font-bold text-center text-gray-800">Yatzy Online</h1>
+                <button id="show-rules-btn-setup" class="absolute right-0 top-0 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">게임 방법</button>
+            </div>
+            <p class="text-center text-xl text-gray-600 mt-4 mb-8">다른 플레이어와 1v1 대전을 즐겨보세요!</p>
+            <div id="matchmaking-status" class="text-center my-4"></div>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button id="find-match-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">랜덤 매칭 찾기</button>
+                <button id="start-ai-btn" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">AI와 대전하기</button>
+                <button id="cancel-match-btn" class="hidden bg-gray-500 hover:bg-gray-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md">매칭 취소</button>
+            </div>
+             <div class="text-center mt-4 text-xs text-gray-500">
+                <p>내 플레이어 ID: <span id="player-id"></span></p>
+            </div>
+        </div>
 
-<!-- Game Screen -->
-<div id="game-screen" class="hidden">
-<header class="text-center mb-6 relative">
-<div class="flex justify-center items-center relative mb-2">
-<h1 class="text-4xl font-bold text-center text-gray-800">Yatzy Online</h1>
-<button id="show-rules-btn-game" class="absolute right-0 top-0 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">게임 방법</button>
-</div>
-<p id="turn-indicator" class="mt-2 text-2xl font-bold text-blue-600"></p>
-<p id="message-area" class="mt-1 text-lg text-gray-600 h-6"></p> <!-- 메시지 영역 높이 고정 -->
-<div id="dice-container" class="flex justify-center items-center gap-2 sm:gap-4 my-6 h-24"></div>
-<div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-<button id="roll-button" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md">
-주사위 굴리기
-</button>
-<p class="text-xl font-medium text-gray-700">남은 횟수: <span id="rolls-left" class="font-bold text-blue-600">3</span></p>
-</div>
-</header>
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden">
+            <header class="text-center mb-6 relative">
+                 <div class="flex justify-center items-center relative mb-2">
+                    <h1 class="text-4xl font-bold text-center text-gray-800">Yatzy Online</h1>
+                    <button id="show-rules-btn-game" class="absolute right-0 top-0 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">게임 방법</button>
+                </div>
+                <p id="turn-indicator" class="mt-2 text-2xl font-bold text-blue-600"></p>
+                <p id="message-area" class="mt-1 text-lg text-gray-600 h-6"></p> <!-- 메시지 영역 높이 고정 -->
+                <div id="dice-container" class="flex justify-center items-center gap-2 sm:gap-4 my-6 h-24"></div>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <button id="roll-button" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-md">
+                        주사위 굴리기
+                    </button>
+                    <p class="text-xl font-medium text-gray-700">남은 횟수: <span id="rolls-left" class="font-bold text-blue-600">3</span></p>
+                </div>
+            </header>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-t-2 border-gray-200 pt-6">
-<div class="md:col-span-2 bg-gray-50 rounded-lg p-4">
-<h2 id="scoreboard-title" class="text-2xl font-bold text-center mb-4 text-gray-700"></h2>
-<table class="w-full text-sm sm:text-base">
-<tbody id="upper-section-body"></tbody>
-<tbody class="border-t-2 border-gray-300">
-<tr><td class="font-bold">상단 합계</td><td id="upper-subtotal" class="text-right font-bold">0</td></tr>
-<tr><td>보너스 (+35)</td><td id="bonus" class="text-right font-bold">0</td></tr>
-<tr class="bg-gray-200"><td class="font-bold">상단 총점</td><td id="upper-total" class="text-right font-bold">0</td></tr>
-</tbody>
-<tbody id="lower-section-body" class="border-t-2 border-gray-300"></tbody>
-<tfoot class="border-t-2 border-gray-300">
-<tr class="bg-blue-100"><td class="text-xl font-bold">총점</td><td id="grand-total" class="text-xl text-right font-bold">0</td></tr>
-</tfoot>
-</table>
-</div>
-<div class="md:col-span-1 bg-gray-50 rounded-lg p-4">
-<h2 class="text-2xl font-bold text-center mb-4 text-gray-700">현재 점수</h2>
-<div id="leaderboard" class="space-y-2"></div>
-</div>
-</div>
-<div class="text-center mt-8">
-<button id="leave-game-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-sm">
-게임 나가기
-</button>
-</div>
-</div>
-</div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-t-2 border-gray-200 pt-6">
+                <div class="md:col-span-2 bg-gray-50 rounded-lg p-4">
+                    <h2 id="scoreboard-title" class="text-2xl font-bold text-center mb-4 text-gray-700"></h2>
+                    <table class="w-full text-sm sm:text-base">
+                        <tbody id="upper-section-body"></tbody>
+                        <tbody class="border-t-2 border-gray-300">
+                            <tr><td class="font-bold">상단 합계</td><td id="upper-subtotal" class="text-right font-bold">0</td></tr>
+                            <tr><td>보너스 (+35)</td><td id="bonus" class="text-right font-bold">0</td></tr>
+                            <tr class="bg-gray-200"><td class="font-bold">상단 총점</td><td id="upper-total" class="text-right font-bold">0</td></tr>
+                        </tbody>
+                        <tbody id="lower-section-body" class="border-t-2 border-gray-300"></tbody>
+                        <tfoot class="border-t-2 border-gray-300">
+                            <tr class="bg-blue-100"><td class="text-xl font-bold">총점</td><td id="grand-total" class="text-xl text-right font-bold">0</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="md:col-span-1 bg-gray-50 rounded-lg p-4">
+                    <h2 class="text-2xl font-bold text-center mb-4 text-gray-700">현재 점수</h2>
+                    <div id="leaderboard" class="space-y-2"></div>
+                </div>
+            </div>
+            <div class="text-center mt-8">
+                <button id="leave-game-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-sm">
+                    게임 나가기
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Over Modal -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-40">
+        <div class="bg-white rounded-lg p-8 text-center shadow-2xl">
+            <h2 class="text-3xl font-bold mb-4">게임 종료!</h2>
+            <div id="final-leaderboard" class="text-lg mb-6 space-y-2"></div>
+            <p id="winner-message" class="text-2xl font-bold text-blue-600 mb-6"></p>
+            <button id="modal-new-game-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg">
+                새 게임 시작하기
+            </button>
+        </div>
+    </div>
+    
+    <!-- Game Rules Modal -->
+    <div id="game-rules-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white rounded-lg p-6 sm:p-8 text-left shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-3xl font-bold">Yatzy 게임 방법</h2>
+                <button id="close-rules-btn" class="text-gray-500 hover:text-gray-800 text-3xl font-bold">&times;</button>
+            </div>
+            <div class="space-y-4 text-gray-700">
+                <p class="font-bold text-lg">게임 목표:</p>
+                <p>총 13라운드를 진행하여 13개의 점수 조합을 모두 채우고, 가장 높은 총점을 얻는 것이 목표입니다.</p>
 
-<!-- Game Over Modal -->
-<div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-40">
-<div class="bg-white rounded-lg p-8 text-center shadow-2xl">
-<h2 class="text-3xl font-bold mb-4">게임 종료!</h2>
-<div id="final-leaderboard" class="text-lg mb-6 space-y-2"></div>
-<p id="winner-message" class="text-2xl font-bold text-blue-600 mb-6"></p>
-<button id="modal-new-game-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg">
-새 게임 시작하기
-</button>
-</div>
-</div>
+                <p class="font-bold text-lg">게임 진행:</p>
+                <ul class="list-disc list-inside space-y-2 pl-4">
+                    <li><strong>주사위 굴리기:</strong> 자신의 턴에 최대 3번까지 주사위를 굴릴 수 있습니다.</li>
+                    <li><strong>주사위 유지:</strong> 굴린 후, 원하는 주사위를 클릭하여 '유지'할 수 있습니다. 유지된 주사위는 다음 굴리기에서 바뀌지 않습니다.</li>
+                    <li><strong>점수 기록:</strong> 3번을 모두 굴렸거나 중간에 멈추고 싶다면, 반드시 13개의 점수 항목 중 하나를 선택하여 점수를 기록해야 합니다. (해당 조합이 나오지 않아도 0점을 기록해야 합니다.)</li>
+                </ul>
 
-<!-- Game Rules Modal -->
-<div id="game-rules-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4">
-<div class="bg-white rounded-lg p-6 sm:p-8 text-left shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-<div class="flex justify-between items-center mb-4">
-<h2 class="text-3xl font-bold">Yatzy 게임 방법</h2>
-<button id="close-rules-btn" class="text-gray-500 hover:text-gray-800 text-3xl font-bold">&times;</button>
-</div>
-<div class="space-y-4 text-gray-700">
-<p class="font-bold text-lg">게임 목표:</p>
-<p>총 13라운드를 진행하여 13개의 점수 조합을 모두 채우고, 가장 높은 총점을 얻는 것이 목표입니다.</p>
-
-<p class="font-bold text-lg">게임 진행:</p>
-<ul class="list-disc list-inside space-y-2 pl-4">
-<li><strong>주사위 굴리기:</strong> 자신의 턴에 최대 3번까지 주사위를 굴릴 수 있습니다.</li>
-<li><strong>주사위 유지:</strong> 굴린 후, 원하는 주사위를 클릭하여 '유지'할 수 있습니다. 유지된 주사위는 다음 굴리기에서 바뀌지 않습니다.</li>
-<li><strong>점수 기록:</strong> 3번을 모두 굴렸거나 중간에 멈추고 싶다면, 반드시 13개의 점수 항목 중 하나를 선택하여 점수를 기록해야 합니다. (해당 조합이 나오지 않아도 0점을 기록해야 합니다.)</li>
-</ul>
-
-<p class="font-bold text-lg">점수판:</p>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div>
-<h3 class="font-semibold text-xl mb-2">상단 (Upper Section)</h3>
-<ul class="list-disc list-inside space-y-1 pl-4">
-<li><strong>Aces (1):</strong> 1이 나온 주사위의 합</li>
-<li><strong>Twos (2):</strong> 2가 나온 주사위의 합</li>
-<li><strong>Threes (3):</strong> 3이 나온 주사위의 합</li>
-<li><strong>Fours (4):</strong> 4가 나온 주사위의 합</li>
-<li><strong>Fives (5):</strong> 5가 나온 주사위의 합</li>
-<li><strong>Sixes (6):</strong> 6이 나온 주사위의 합</li>
-<li><strong>보너스:</strong> 상단 6개 항목의 합(상단 합계)이 63점 이상일 경우, <strong>보너스 35점</strong>을 추가로 얻습니다.</li>
-</ul>
-</div>
-<div>
-<h3 class="font-semibold text-xl mb-2">하단 (Lower Section)</h3>
-<ul class="list-disc list-inside space-y-1 pl-4">
-<li><strong>3 of a Kind:</strong> 동일한 주사위 3개 이상. (모든 주사위 눈의 합)</li>
-<li><strong>4 of a Kind:</strong> 동일한 주사위 4개 이상. (모든 주사위 눈의 합)</li>
-<li><strong>Full House:</strong> 3개 + 2개 (예: 4,4,4,2,2). (고정 25점)</li>
-<li><strong>Small Straight:</strong> 4개의 연속된 숫자 (1-2-3-4, 2-3-4-5, 3-4-5-6). (고정 30점)</li>
-<li><strong>Large Straight:</strong> 5개의 연속된 숫자 (1-2-3-4-5, 2-3-4-5-6). (고정 40점)</li>
-<li><strong>Yatzy:</strong> 5개 모두 동일한 숫자. (고정 50점)</li>
-<li><strong>Chance:</strong> 조건 없음. (모든 주사위 눈의 합)</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="text-right mt-6">
-<button id="close-rules-btn-bottom" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">
-닫기
-</button>
-</div>
-</div>
-</div>
-
+                <p class="font-bold text-lg">점수판:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-semibold text-xl mb-2">상단 (Upper Section)</h3>
+                        <ul class="list-disc list-inside space-y-1 pl-4">
+                            <li><strong>Aces (1):</strong> 1이 나온 주사위의 합</li>
+                            <li><strong>Twos (2):</strong> 2가 나온 주사위의 합</li>
+                            <li><strong>Threes (3):</strong> 3이 나온 주사위의 합</li>
+                            <li><strong>Fours (4):</strong> 4가 나온 주사위의 합</li>
+                            <li><strong>Fives (5):</strong> 5가 나온 주사위의 합</li>
+                            <li><strong>Sixes (6):</strong> 6이 나온 주사위의 합</li>
+                            <li><strong>보너스:</strong> 상단 6개 항목의 합(상단 합계)이 63점 이상일 경우, <strong>보너스 35점</strong>을 추가로 얻습니다.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-xl mb-2">하단 (Lower Section)</h3>
+                        <ul class="list-disc list-inside space-y-1 pl-4">
+                            <li><strong>3 of a Kind:</strong> 동일한 주사위 3개 이상. (모든 주사위 눈의 합)</li>
+                            <li><strong>4 of a Kind:</strong> 동일한 주사위 4개 이상. (모든 주사위 눈의 합)</li>
+                            <li><strong>Full House:</strong> 3개 + 2개 (예: 4,4,4,2,2). (고정 25점)</li>
+                            <li><strong>Small Straight:</strong> 4개의 연속된 숫자 (1-2-3-4, 2-3-4-5, 3-4-5-6). (고정 30점)</li>
+                            <li><strong>Large Straight:</strong> 5개의 연속된 숫자 (1-2-3-4-5, 2-3-4-5-6). (고정 40점)</li>
+                            <li><strong>Yatzy:</strong> 5개 모두 동일한 숫자. (고정 50점)</li>
+                            <li><strong>Chance:</strong> 조건 없음. (모든 주사위 눈의 합)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="text-right mt-6">
+                <button id="close-rules-btn-bottom" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+    
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc, onSnapshot, updateDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc, onSnapshot, updateDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    
+    // This is a public configuration.
+    const firebaseConfig = {
+      apiKey: "AIzaSyDkQFPUAPnkMjbmLfNCaThbWQ0yzzrT7mU",
+      authDomain: "yatzy-online-3a321.firebaseapp.com",
+      projectId: "yatzy-online-3a321",
+      storageBucket: "yatzy-online-3a321.appspot.com",
+      messagingSenderId: "1085827487793",
+      appId: "1:1085827487793:web:2e40bb73e20dfba34b5d10"
+    };
+    
+    try {
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-// This is a public configuration.
-const firebaseConfig = {
-apiKey: "AIzaSyDkQFPUAPnkMjbmLfNCaThbWQ0yzzrT7mU",
-authDomain: "yatzy-online-3a321.firebaseapp.com",
-projectId: "yatzy-online-3a321",
-storageBucket: "yatzy-online-3a321.appspot.com",
-messagingSenderId: "1085827487793",
-appId: "1:1085827487793:web:2e40bb73e20dfba34b5d10"
-};
+        // --- DOM Elements ---
+        const setupScreen = document.getElementById('setup-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const findMatchBtn = document.getElementById('find-match-btn');
+        const startAiBtn = document.getElementById('start-ai-btn');
+        const cancelMatchBtn = document.getElementById('cancel-match-btn');
+        const matchmakingStatus = document.getElementById('matchmaking-status');
+        const diceContainer = document.getElementById('dice-container');
+        const rollButton = document.getElementById('roll-button');
+        const leaderboard = document.getElementById('leaderboard');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const playerIdEl = document.getElementById('player-id');
+        const leaveGameButton = document.getElementById('leave-game-button');
+        const modalNewGameButton = document.getElementById('modal-new-game-button');
+        
+        // Rules Modal Elements
+        const showRulesBtnSetup = document.getElementById('show-rules-btn-setup');
+        const showRulesBtnGame = document.getElementById('show-rules-btn-game');
+        const gameRulesModal = document.getElementById('game-rules-modal');
+        const closeRulesBtn = document.getElementById('close-rules-btn');
+        const closeRulesBtnBottom = document.getElementById('close-rules-btn-bottom');
 
-try {
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+        // --- Game State ---
+        let state = {};
+        let userId, myPlayerIndex, gameId;
+        let gameMode = null; // 'online' or 'ai'
+        let gameUnsubscribe = null, waitingUnsubscribe = null;
+        let aiTurnTimeout = null; // AI 턴 *시작* 타이머 (잠금 역할)
+        let scoreMessageTimeout = null; // 점수 메시지 타이머
 
-// --- DOM Elements ---
-const setupScreen = document.getElementById('setup-screen');
-const gameScreen = document.getElementById('game-screen');
-const findMatchBtn = document.getElementById('find-match-btn');
-const startAiBtn = document.getElementById('start-ai-btn');
-const cancelMatchBtn = document.getElementById('cancel-match-btn');
-const matchmakingStatus = document.getElementById('matchmaking-status');
-const diceContainer = document.getElementById('dice-container');
-const rollButton = document.getElementById('roll-button');
-const leaderboard = document.getElementById('leaderboard');
-const gameOverModal = document.getElementById('game-over-modal');
-const playerIdEl = document.getElementById('player-id');
-const leaveGameButton = document.getElementById('leave-game-button');
-const modalNewGameButton = document.getElementById('modal-new-game-button');
+        const SCORE_CATEGORIES = {
+            upper: { aces: '1 (Aces)', twos: '2 (Twos)', threes: '3 (Threes)', fours: '4 (Fours)', fives: '5 (Fives)', sixes: '6 (Sixes)' },
+            lower: { threeOfAKind: '3 of a Kind', fourOfAKind: '4 of a Kind', fullHouse: 'Full House', smallStraight: 'Small Straight', largeStraight: 'Large Straight', yatzy: 'Yatzy', chance: 'Chance' }
+        };
+        
+        // --- Authentication ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                userId = user.uid;
+                playerIdEl.textContent = userId.substring(0, 8);
+                findMatchBtn.disabled = false;
+                startAiBtn.disabled = false;
+            } else {
+                findMatchBtn.disabled = true;
+                startAiBtn.disabled = true;
+            }
+        });
+        await signInAnonymously(auth);
 
-// Rules Modal Elements
-const showRulesBtnSetup = document.getElementById('show-rules-btn-setup');
-const showRulesBtnGame = document.getElementById('show-rules-btn-game');
-const gameRulesModal = document.getElementById('game-rules-modal');
-const closeRulesBtn = document.getElementById('close-rules-btn');
-const closeRulesBtnBottom = document.getElementById('close-rules-btn-bottom');
+        // --- UI Logic ---
+        function init() {
+            if (gameUnsubscribe) { gameUnsubscribe(); gameUnsubscribe = null; }
+            if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
+            if (aiTurnTimeout) { clearTimeout(aiTurnTimeout); aiTurnTimeout = null; }
+            if (scoreMessageTimeout) { clearTimeout(scoreMessageTimeout); scoreMessageTimeout = null; }
+            
+            gameScreen.classList.add('hidden');
+            setupScreen.classList.remove('hidden');
+            gameOverModal.classList.add('hidden');
+            gameRulesModal.classList.add('hidden'); // Ensure rules modal is hidden
+            
+            findMatchBtn.disabled = false;
+            startAiBtn.disabled = false;
+            findMatchBtn.classList.remove('hidden');
+            startAiBtn.classList.remove('hidden');
+            findMatchBtn.textContent = '랜덤 매칭 찾기';
+            
+            cancelMatchBtn.classList.add('hidden');
 
-// --- Game State ---
-let state = {};
-let userId, myPlayerIndex, gameId;
-let gameMode = null; // 'online' or 'ai'
-let gameUnsubscribe = null, waitingUnsubscribe = null;
-let aiTurnTimeout = null; // AI 턴 *시작* 타이머 (잠금 역할)
-let scoreMessageTimeout = null; // 점수 메시지 타이머
+            matchmakingStatus.textContent = '';
+            state = {};
+            gameId = null;
+            myPlayerIndex = null;
+            gameMode = null;
+        }
 
-const SCORE_CATEGORIES = {
-upper: { aces: '1 (Aces)', twos: '2 (Twos)', threes: '3 (Threes)', fours: '4 (Fours)', fives: '5 (Fives)', sixes: '6 (Sixes)' },
-lower: { threeOfAKind: '3 of a Kind', fourOfAKind: '4 of a Kind', fullHouse: 'Full House', smallStraight: 'Small Straight', largeStraight: 'Large Straight', yatzy: 'Yatzy', chance: 'Chance' }
-};
+        async function findMatch() {
+            gameMode = 'online';
+            findMatchBtn.classList.add('hidden');
+            startAiBtn.classList.add('hidden');
+            cancelMatchBtn.classList.remove('hidden');
+            matchmakingStatus.textContent = '상대를 찾고 있습니다...';
+            
+            const waitingRef = collection(db, "waitingRoom");
+            const q = query(waitingRef, where("playerId", "!=", userId));
+            const querySnapshot = await getDocs(q);
 
-// --- Authentication ---
-onAuthStateChanged(auth, user => {
-if (user) {
-userId = user.uid;
-playerIdEl.textContent = userId.substring(0, 8);
-findMatchBtn.disabled = false;
-startAiBtn.disabled = false;
-} else {
-findMatchBtn.disabled = true;
-startAiBtn.disabled = true;
-}
-});
-await signInAnonymously(auth);
+            if (!querySnapshot.empty) {
+                const opponentDoc = querySnapshot.docs[0];
+                const opponentId = opponentDoc.id; // 매칭을 먼저 시작해서 기다리고 있던 상대방(Player 1)
 
-// --- UI Logic ---
-function init() {
-if (gameUnsubscribe) { gameUnsubscribe(); gameUnsubscribe = null; }
-if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
-if (aiTurnTimeout) { clearTimeout(aiTurnTimeout); aiTurnTimeout = null; }
-if (scoreMessageTimeout) { clearTimeout(scoreMessageTimeout); scoreMessageTimeout = null; }
+                const newGameRef = doc(collection(db, "games"));
+                gameId = newGameRef.id;
 
-gameScreen.classList.add('hidden');
-setupScreen.classList.remove('hidden');
-gameOverModal.classList.add('hidden');
-gameRulesModal.classList.add('hidden'); // Ensure rules modal is hidden
+                const scoreSheet = () => {
+                    const sheet = {};
+                    Object.keys({...SCORE_CATEGORIES.upper, ...SCORE_CATEGORIES.lower}).forEach(id => { sheet[id] = null; });
+                    return sheet;
+                };
 
-findMatchBtn.disabled = false;
-startAiBtn.disabled = false;
-findMatchBtn.classList.remove('hidden');
-startAiBtn.classList.remove('hidden');
-findMatchBtn.textContent = '랜덤 매칭 찾기';
+                const initialGameState = {
+                    // 매칭을 먼저 시작한 사람(opponentId)이 Player 1 (index 0)이 됩니다.
+                    players: [opponentId, userId],
+                    playerNames: { [opponentId]: 'Player 1', [userId]: 'Player 2' },
+                    dice: [1, 2, 3, 4, 5], kept: [false, false, false, false, false],
+                    rollsLeft: 3, round: 1, currentPlayer: 0, // 게임은 Player 1부터 시작합니다.
+                    scores: [scoreSheet(), scoreSheet()],
+                    isTurnStarted: false, status: 'active', createdAt: serverTimestamp(),
+                    message: `Player 1의 턴입니다.`
+                };
 
-cancelMatchBtn.classList.add('hidden');
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        transaction.delete(doc(db, "waitingRoom", opponentId));
+                        transaction.set(newGameRef, initialGameState);
+                    });
+                    joinGame(gameId);
+                } catch (e) {
+                    console.error("Transaction failed: ", e);
+                    init();
+                }
 
-matchmakingStatus.textContent = '';
-state = {};
-gameId = null;
-myPlayerIndex = null;
-gameMode = null;
-}
+            } else {
+                const myWaitingRef = doc(db, "waitingRoom", userId);
+                await setDoc(myWaitingRef, { playerId: userId, timestamp: serverTimestamp() });
 
-async function findMatch() {
-gameMode = 'online';
-findMatchBtn.classList.add('hidden');
-startAiBtn.classList.add('hidden');
-cancelMatchBtn.classList.remove('hidden');
-matchmakingStatus.textContent = '상대를 찾고 있습니다...';
+                waitingUnsubscribe = onSnapshot(myWaitingRef, (doc) => {
+                    if (!doc.exists()) { // Matched by someone else
+                         findGameAndJoin();
+                    }
+                });
+            }
+        }
+        
+        async function cancelMatch() {
+            if (waitingUnsubscribe) {
+                waitingUnsubscribe();
+                waitingUnsubscribe = null;
+            }
+            try {
+                if (gameMode === 'online') {
+                    const myWaitingRef = doc(db, "waitingRoom", userId);
+                    await deleteDoc(myWaitingRef);
+                }
+            } catch (error) {
+                console.error("Error removing document from waiting room:", error);
+            }
+            init();
+        }
 
-const waitingRef = collection(db, "waitingRoom");
-const q = query(waitingRef, where("playerId", "!=", userId));
-const querySnapshot = await getDocs(q);
+        // --- AI Game Logic ---
+        function startAiGame() {
+            gameMode = 'ai';
+            myPlayerIndex = 0; // Player 1 is human
+            
+            const scoreSheet = () => {
+                const sheet = {};
+                Object.keys({...SCORE_CATEGORIES.upper, ...SCORE_CATEGORIES.lower}).forEach(id => { sheet[id] = null; });
+                return sheet;
+            };
 
-if (!querySnapshot.empty) {
-const opponentDoc = querySnapshot.docs[0];
-const opponentId = opponentDoc.id; // 매칭을 먼저 시작해서 기다리고 있던 상대방(Player 1)
+            state = {
+                players: [userId, 'AI'],
+                playerNames: { [userId]: 'Player 1', 'AI': 'AI' },
+                dice: [1, 2, 3, 4, 5], kept: [false, false, false, false, false],
+                rollsLeft: 3, round: 1, currentPlayer: 0, // Player 1 (human) starts
+                scores: [scoreSheet(), scoreSheet()],
+                isTurnStarted: false, status: 'active',
+                message: "당신의 턴입니다."
+            };
+            
+            setupScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            updateUI();
+        }
 
-const newGameRef = doc(collection(db, "games"));
-gameId = newGameRef.id;
-
-const scoreSheet = () => {
-const sheet = {};
-Object.keys({...SCORE_CATEGORIES.upper, ...SCORE_CATEGORIES.lower}).forEach(id => { sheet[id] = null; });
-return sheet;
-};
-
-const initialGameState = {
-// 매칭을 먼저 시작한 사람(opponentId)이 Player 1 (index 0)이 됩니다.
-players: [opponentId, userId],
-playerNames: { [opponentId]: 'Player 1', [userId]: 'Player 2' },
-dice: [1, 2, 3, 4, 5], kept: [false, false, false, false, false],
-rollsLeft: 3, round: 1, currentPlayer: 0, // 게임은 Player 1부터 시작합니다.
-scores: [scoreSheet(), scoreSheet()],
-isTurnStarted: false, status: 'active', createdAt: serverTimestamp(),
-message: `Player 1의 턴입니다.`
-};
-
-try {
-await runTransaction(db, async (transaction) => {
-transaction.delete(doc(db, "waitingRoom", opponentId));
-transaction.set(newGameRef, initialGameState);
-});
-joinGame(gameId);
-} catch (e) {
-console.error("Transaction failed: ", e);
-init();
-}
-
-} else {
-const myWaitingRef = doc(db, "waitingRoom", userId);
-await setDoc(myWaitingRef, { playerId: userId, timestamp: serverTimestamp() });
-
-waitingUnsubscribe = onSnapshot(myWaitingRef, (doc) => {
-if (!doc.exists()) { // Matched by someone else
-findGameAndJoin();
-}
-});
-}
-}
-
-async function cancelMatch() {
-if (waitingUnsubscribe) {
-waitingUnsubscribe();
-waitingUnsubscribe = null;
-}
-try {
-if (gameMode === 'online') {
-const myWaitingRef = doc(db, "waitingRoom", userId);
-await deleteDoc(myWaitingRef);
-}
-} catch (error) {
-console.error("Error removing document from waiting room:", error);
-}
-init();
-}
-
-// --- AI Game Logic ---
-function startAiGame() {
-gameMode = 'ai';
-myPlayerIndex = 0; // Player 1 is human
-
-const scoreSheet = () => {
-const sheet = {};
-Object.keys({...SCORE_CATEGORIES.upper, ...SCORE_CATEGORIES.lower}).forEach(id => { sheet[id] = null; });
-return sheet;
-};
-
-state = {
-players: [userId, 'AI'],
-playerNames: { [userId]: 'Player 1', 'AI': 'AI' },
-dice: [1, 2, 3, 4, 5], kept: [false, false, false, false, false],
-rollsLeft: 3, round: 1, currentPlayer: 0, // Player 1 (human) starts
-scores: [scoreSheet(), scoreSheet()],
-isTurnStarted: false, status: 'active',
-message: "당신의 턴입니다."
-};
-
-setupScreen.classList.add('hidden');
-gameScreen.classList.remove('hidden');
-updateUI();
-}
-
-        // --- Universal Game State Updater ---
         /**
          * AI 모드에서 로컬 게임 상태를 업데이트합니다.
          * 중요: 이 함수는 더 이상 AI 턴을 트리거하지 않습니다.
          */
-function updateGameState(newState) {
-state = { ...state, ...newState };
-updateUI();
-
-if (state.status === 'finished') {
-endGame(true);
-            } else if (gameMode === 'ai' && state.currentPlayer === 1 && !aiTurnTimeout) { // AI's turn
-                 // aiTurnTimeout은 AI 턴을 *시작*하는 역할만 하고, runAITurn 내부에서 null로 클리어됩니다.
-                 aiTurnTimeout = setTimeout(runAITurn, 1000); // AI "thinks" for a second
-}
+        function updateGameState(newState) {
+            state = { ...state, ...newState };
+            updateUI();
+            
+            if (state.status === 'finished') {
+                endGame(true);
+            }
             // *** AI 턴 트리거 로직을 여기서 제거했습니다. ***
-}
+        }
 
-async function findGameAndJoin() {
-if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
-const gamesRef = collection(db, "games");
-            // BUG FIX: Changed '==' to '"=="'
-const q = query(gamesRef, where("players", "array-contains", userId), where("status", "==", "active"));
-const snapshot = await getDocs(q);
-if(!snapshot.empty) {
-const gameDoc = snapshot.docs[0];
-joinGame(gameDoc.id);
-}
-}
+        async function findGameAndJoin() {
+            if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
+            const gamesRef = collection(db, "games");
+            const q = query(gamesRef, where("players", "array-contains", userId), where("status", "==", "active"));
+            const snapshot = await getDocs(q);
+            if(!snapshot.empty) {
+                const gameDoc = snapshot.docs[0];
+                joinGame(gameDoc.id);
+            }
+        }
 
-function joinGame(newGameId) {
-if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
-gameId = newGameId;
-setupScreen.classList.add('hidden');
-gameScreen.classList.remove('hidden');
+        function joinGame(newGameId) {
+            if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
+            gameId = newGameId;
+            setupScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
 
-if(gameUnsubscribe) { gameUnsubscribe(); gameUnsubscribe = null; }
-gameUnsubscribe = onSnapshot(doc(db, "games", gameId), (doc) => {
-if (doc.exists()) {
-state = doc.data();
-myPlayerIndex = state.players.indexOf(userId);
-if(state.status === 'finished') {
-endGame(true); // Don't update doc if already finished
-} else {
-updateUI();
-}
-} else {
-alert("상대가 게임을 떠났거나 게임이 종료되었습니다. 로비로 돌아갑니다.");
-init();
-}
-});
-}
+            if(gameUnsubscribe) { gameUnsubscribe(); gameUnsubscribe = null; }
+            gameUnsubscribe = onSnapshot(doc(db, "games", gameId), (doc) => {
+                if (doc.exists()) {
+                    state = doc.data();
+                    myPlayerIndex = state.players.indexOf(userId);
+                    if(state.status === 'finished') {
+                        endGame(true); // Don't update doc if already finished
+                    } else {
+                        updateUI();
+                    }
+                } else {
+                    alert("상대가 게임을 떠났거나 게임이 종료되었습니다. 로비로 돌아갑니다.");
+                    init();
+                }
+            });
+        }
 
-function updateUI() {
-if (!state || !state.players) return;
+        function updateUI() {
+            if (!state || !state.players) return;
+            
+            document.getElementById('dice-container').innerHTML = state.dice.map((val, i) => getDieHTML(val, i, state.kept[i])).join('');
+            
+            const isMyTurn = state.currentPlayer === myPlayerIndex;
+            document.getElementById('rolls-left').textContent = state.rollsLeft;
+            
+            let turnName = isMyTurn ? '내 턴' : (gameMode === 'online' ? '상대 턴' : 'AI 턴');
+            document.getElementById('turn-indicator').textContent = `라운드 ${state.round}/13 • ${turnName}`;
 
-document.getElementById('dice-container').innerHTML = state.dice.map((val, i) => getDieHTML(val, i, state.kept[i])).join('');
-
-const isMyTurn = state.currentPlayer === myPlayerIndex;
-document.getElementById('rolls-left').textContent = state.rollsLeft;
-
-let turnName = isMyTurn ? '내 턴' : (gameMode === 'online' ? '상대 턴' : 'AI 턴');
-document.getElementById('turn-indicator').textContent = `라운드 ${state.round}/13 • ${turnName}`;
-
-let titlePlayerName = isMyTurn ? '내' : (gameMode === 'online' ? '상대' : 'AI');
-document.getElementById('scoreboard-title').textContent = `${titlePlayerName} 점수판 (Player ${state.currentPlayer + 1})`;
-
-            document.getElementById('message-area').textContent = state.message || '';
+            let titlePlayerName = isMyTurn ? '내' : (gameMode === 'online' ? '상대' : 'AI');
+            document.getElementById('scoreboard-title').textContent = `${titlePlayerName} 점수판 (Player ${state.currentPlayer + 1})`;
+            
             // 점수 기록 메시지가 아닐 때만 일반 메시지 표시
             if (!scoreMessageTimeout) {
                 document.getElementById('message-area').textContent = state.message || '';
             }
 
-rollButton.disabled = !isMyTurn || state.rollsLeft === 0 || (state.isTurnStarted === false && state.rollsLeft < 3);
-rollButton.classList.toggle('opacity-50', rollButton.disabled);
+            rollButton.disabled = !isMyTurn || state.rollsLeft === 0 || (state.isTurnStarted === false && state.rollsLeft < 3);
+            rollButton.classList.toggle('opacity-50', rollButton.disabled);
 
-updateScoresheet();
-updateLeaderboard();
-}
+            updateScoresheet();
+            updateLeaderboard();
+        }
 
-function updateScoresheet() {
-const displayPlayerIndex = state.currentPlayer;
-const playerScores = state.scores[displayPlayerIndex];
-const potential = state.isTurnStarted ? calculateScores(state.dice) : {};
+        function updateScoresheet() {
+            const displayPlayerIndex = state.currentPlayer;
+            const playerScores = state.scores[displayPlayerIndex];
+            const potential = state.isTurnStarted ? calculateScores(state.dice) : {};
 
-let upperSubtotal = 0;
-document.querySelectorAll('#game-screen .score-row').forEach(row => {
-const id = row.dataset.id;
-const scoreCell = row.querySelector('.score');
-if (playerScores[id] !== null) {
-scoreCell.textContent = playerScores[id];
-scoreCell.classList.remove('potential-score');
-row.classList.add('scored', 'opacity-70');
-row.classList.remove('clickable');
-} else {
-scoreCell.textContent = (state.isTurnStarted && state.currentPlayer === myPlayerIndex) ? potential[id] : '';
-scoreCell.classList.toggle('potential-score', state.isTurnStarted && state.currentPlayer === myPlayerIndex);
-row.classList.remove('scored', 'opacity-70');
-row.classList.toggle('clickable', state.isTurnStarted && state.currentPlayer === myPlayerIndex);
-}
-if (SCORE_CATEGORIES.upper[id] && playerScores[id] !== null) {
-upperSubtotal += playerScores[id];
-}
-});
+            let upperSubtotal = 0;
+            document.querySelectorAll('#game-screen .score-row').forEach(row => {
+                const id = row.dataset.id;
+                const scoreCell = row.querySelector('.score');
+                if (playerScores[id] !== null) {
+                    scoreCell.textContent = playerScores[id];
+                    scoreCell.classList.remove('potential-score');
+                    row.classList.add('scored', 'opacity-70');
+                    row.classList.remove('clickable');
+                } else {
+                    scoreCell.textContent = (state.isTurnStarted && state.currentPlayer === myPlayerIndex) ? potential[id] : '';
+                    scoreCell.classList.toggle('potential-score', state.isTurnStarted && state.currentPlayer === myPlayerIndex);
+                    row.classList.remove('scored', 'opacity-70');
+                    row.classList.toggle('clickable', state.isTurnStarted && state.currentPlayer === myPlayerIndex);
+                }
+                 if (SCORE_CATEGORIES.upper[id] && playerScores[id] !== null) {
+                    upperSubtotal += playerScores[id];
+                }
+            });
+            
+            const bonus = upperSubtotal >= 63 ? 35 : 0;
+            document.getElementById('upper-subtotal').textContent = upperSubtotal;
+            document.getElementById('bonus').textContent = bonus;
+            document.getElementById('upper-total').textContent = upperSubtotal + bonus;
+            document.getElementById('grand-total').textContent = getPlayerTotal(displayPlayerIndex);
+        }
+        
+        function updateLeaderboard() {
+            leaderboard.innerHTML = state.players.map((pId, i) => {
+                const name = (i === myPlayerIndex) ? '나' : (gameMode === 'online' ? '상대' : 'AI');
+                return `
+                <div class="leaderboard-item flex justify-between items-center p-2 rounded ${i === state.currentPlayer ? 'current-player' : ''}">
+                    <span class="font-bold text-lg">${name} (P${i+1})</span>
+                    <span class="text-lg font-semibold">${getPlayerTotal(i)}</span>
+                </div>
+            `}).join('');
+        }
+        
+        async function rollDice() {
+            if (state.currentPlayer !== myPlayerIndex || state.rollsLeft <= 0) return;
+            const newDice = state.dice.map((d, i) => state.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
+            
+            const newState = {
+                dice: newDice,
+                rollsLeft: state.rollsLeft - 1,
+                isTurnStarted: true,
+                message: state.rollsLeft - 1 > 0 ? "유지할 주사위를 선택하세요." : "점수를 기록할 항목을 선택하세요."
+            };
+            
+            if (gameMode === 'online') {
+                await updateDoc(doc(db, "games", gameId), newState);
+            } else {
+                updateGameState(newState);
+            }
+        }
 
-const bonus = upperSubtotal >= 63 ? 35 : 0;
-document.getElementById('upper-subtotal').textContent = upperSubtotal;
-document.getElementById('bonus').textContent = bonus;
-document.getElementById('upper-total').textContent = upperSubtotal + bonus;
-document.getElementById('grand-total').textContent = getPlayerTotal(displayPlayerIndex);
-}
+        async function toggleKeep(index) {
+            if (state.currentPlayer !== myPlayerIndex || !state.isTurnStarted || state.rollsLeft === 3) return;
+            const newKept = [...state.kept];
+            newKept[index] = !newKept[index];
+            
+            if (gameMode === 'online') {
+                await updateDoc(doc(db, "games", gameId), { kept: newKept });
+            } else {
+                updateGameState({ kept: newKept });
+            }
+        }
 
-function updateLeaderboard() {
-leaderboard.innerHTML = state.players.map((pId, i) => {
-const name = (i === myPlayerIndex) ? '나' : (gameMode === 'online' ? '상대' : 'AI');
-return `
-               <div class="leaderboard-item flex justify-between items-center p-2 rounded ${i === state.currentPlayer ? 'current-player' : ''}">
-                   <span class="font-bold text-lg">${name} (P${i+1})</span>
-                   <span class="text-lg font-semibold">${getPlayerTotal(i)}</span>
-               </div>
-           `}).join('');
-}
-
-async function rollDice() {
-if (state.currentPlayer !== myPlayerIndex || state.rollsLeft <= 0) return;
-const newDice = state.dice.map((d, i) => state.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
-
-const newState = {
-dice: newDice,
-rollsLeft: state.rollsLeft - 1,
-isTurnStarted: true,
-message: state.rollsLeft - 1 > 0 ? "유지할 주사위를 선택하세요." : "점수를 기록할 항목을 선택하세요."
-};
-
-if (gameMode === 'online') {
-await updateDoc(doc(db, "games", gameId), newState);
-} else {
-updateGameState(newState);
-}
-}
-
-async function toggleKeep(index) {
-if (state.currentPlayer !== myPlayerIndex || !state.isTurnStarted || state.rollsLeft === 3) return;
-const newKept = [...state.kept];
-newKept[index] = !newKept[index];
-
-if (gameMode === 'online') {
-await updateDoc(doc(db, "games", gameId), { kept: newKept });
-} else {
-updateGameState({ kept: newKept });
-}
-}
-
-async function selectScore(e) {
-const row = e.target.closest('.score-row');
-if (!row || state.currentPlayer !== myPlayerIndex || !state.isTurnStarted || row.classList.contains('scored')) return;
-
-if (scoreMessageTimeout) clearTimeout(scoreMessageTimeout);
-
-// 1. Get score and ID
-const id = row.dataset.id;
-            const scoreName = SCORE_CATEGORIES.upper[id] || SCORE_CATEGORIES.lower[id];
-const potential = calculateScores(state.dice);
-            const newScores = [...state.scores];
-const scoredValue = potential[id];
-            newScores[myPlayerIndex][id] = scoredValue;
+        async function selectScore(e) {
+            const row = e.target.closest('.score-row');
+            if (!row || state.currentPlayer !== myPlayerIndex || !state.isTurnStarted || row.classList.contains('scored')) return;
+            
+            if (scoreMessageTimeout) clearTimeout(scoreMessageTimeout);
+            
+            // 1. Get score and ID
+            const id = row.dataset.id;
+            const potential = calculateScores(state.dice);
+            const scoredValue = potential[id];
             
             await scoreAndEndHumanTurn(id, scoredValue);
         }
@@ -546,151 +537,133 @@ const scoredValue = potential[id];
             const playerName = (myPlayerIndex === 0) ? "Player 1" : "Player 2";
             const scoreMessage = `${playerName} (당신)이 ${scoreName}에 ${score}점을 기록했습니다.`;
 
-// 2. Calculate next turn
-let nextPlayer = state.currentPlayer + 1;
-let nextRound = state.round;
-if (nextPlayer >= state.players.length) {
-nextPlayer = 0;
-nextRound++;
-}
-            
-            // 3. Create message
-            const playerName = (myPlayerIndex === 0) ? "Player 1" : "Player 2";
-            const scoreMessage = `${playerName} (당신)이 ${scoreName}에 ${scoredValue}점을 기록했습니다.`;
+            // 2. Calculate next turn
+            let nextPlayer = state.currentPlayer + 1;
+            let nextRound = state.round;
+            if (nextPlayer >= state.players.length) {
+                nextPlayer = 0;
+                nextRound++;
+            }
 
-            // 4. Update doc/state with score and message (disables UI)
             // 3. Update doc/state with score and message (disables UI)
-const scoreUpdateState = {
-scores: newScores,
-message: scoreMessage,
-isTurnStarted: false, // Prevents further action
-rollsLeft: 0 // Prevents further rolls
-};
-            
+            const scoreUpdateState = {
+                scores: newScores,
+                message: scoreMessage,
+                isTurnStarted: false, // Prevents further action
+                rollsLeft: 0 // Prevents further rolls
+            };
 
             // 메시지 영역에 점수 메시지 즉시 표시
             document.getElementById('message-area').textContent = scoreMessage;
 
-if (gameMode === 'online') {
-await updateDoc(doc(db, "games", gameId), scoreUpdateState);
-} else {
-updateGameState(scoreUpdateState);
-}
-
-            // 5. Wait for 1.5 seconds
+            if (gameMode === 'online') {
+                await updateDoc(doc(db, "games", gameId), scoreUpdateState);
+            } else {
+                updateGameState(scoreUpdateState);
+            }
+            
             // 4. Wait for 1.5 seconds
-scoreMessageTimeout = setTimeout(async () => {
+            scoreMessageTimeout = setTimeout(async () => {
                 scoreMessageTimeout = null; // 타이머 클리어
                 if(state.status === 'finished') return; // 이미 게임 종료됨
 
-if (nextRound > 13) {
-await endGame();
-} else {
-                    // 6. Update doc/state to change turn
+                if (nextRound > 13) {
+                    await endGame();
+                } else {
                     // 5. Update doc/state to change turn
-const nextTurnState = {
-currentPlayer: nextPlayer,
-round: nextRound,
-rollsLeft: 3,
-kept: [false, false, false, false, false],
-isTurnStarted: false,
-message: `Player ${nextPlayer + 1}의 턴입니다.`
-};
-if (gameMode === 'online') {
-await updateDoc(doc(db, "games", gameId), nextTurnState);
-} else {
-updateGameState(nextTurnState);
+                    const nextTurnState = {
+                        currentPlayer: nextPlayer,
+                        round: nextRound,
+                        rollsLeft: 3,
+                        kept: [false, false, false, false, false],
+                        isTurnStarted: false,
+                        message: `Player ${nextPlayer + 1}의 턴입니다.`
+                    };
+                    if (gameMode === 'online') {
+                        await updateDoc(doc(db, "games", gameId), nextTurnState);
+                    } else {
+                        updateGameState(nextTurnState);
                         
                         // *** FIX: AI 턴은 오직 사람 턴이 끝난 직후에만 트리거됩니다. ***
                         if (gameMode === 'ai' && nextPlayer === 1 && !aiTurnTimeout) {
                             aiTurnTimeout = setTimeout(runAITurn, 1000); // 1초 후 AI 턴 시작
                         }
-}
-}
-}, 1500); // 1.5초 딜레이
-}
+                    }
+                }
+            }, 1500); // 1.5초 딜레이
+        }
 
+        
+        async function endGame(isFinishedByOpponent = false) {
+            if (aiTurnTimeout) { clearTimeout(aiTurnTimeout); aiTurnTimeout = null; }
+            if (scoreMessageTimeout) { clearTimeout(scoreMessageTimeout); scoreMessageTimeout = null; }
 
-async function endGame(isFinishedByOpponent = false) {
-if (aiTurnTimeout) { clearTimeout(aiTurnTimeout); aiTurnTimeout = null; }
-if (scoreMessageTimeout) { clearTimeout(scoreMessageTimeout); scoreMessageTimeout = null; }
+            const finalTotals = state.players.map((pId, i) => ({ 
+                player: i + 1, 
+                name: (i === myPlayerIndex) ? '나' : (gameMode === 'online' ? '상대' : 'AI'), 
+                score: getPlayerTotal(i) 
+            })).sort((a, b) => b.score - a.score);
+            
+            document.getElementById('final-leaderboard').innerHTML = finalTotals.map(p => `<p>${p.name} (Player ${p.player}): <span class="font-bold text-xl">${p.score}</span>점</p>`).join('');
 
-const finalTotals = state.players.map((pId, i) => ({ 
-player: i + 1, 
-name: (i === myPlayerIndex) ? '나' : (gameMode === 'online' ? '상대' : 'AI'), 
-score: getPlayerTotal(i) 
-})).sort((a, b) => b.score - a.score);
-
-document.getElementById('final-leaderboard').innerHTML = finalTotals.map(p => `<p>${p.name} (Player ${p.player}): <span class="font-bold text-xl">${p.score}</span>점</p>`).join('');
-
-const winnerMessageEl = document.getElementById('winner-message');
-if (finalTotals[0].score === finalTotals[1]?.score) {
-winnerMessageEl.textContent = '무승부입니다!';
-} else {
-winnerMessageEl.textContent = `${finalTotals[0].name} (Player ${finalTotals[0].player})의 승리입니다!`;
-}
-
-if(gameMode === 'online' && !isFinishedByOpponent) {
-await updateDoc(doc(db, "games", gameId), { status: 'finished' });
-            } else if (gameMode === 'ai') { // AI 모드일 때도 state 업데이트
+            const winnerMessageEl = document.getElementById('winner-message');
+            if (finalTotals[0].score === finalTotals[1]?.score) {
+                winnerMessageEl.textContent = '무승부입니다!';
+            } else {
+                winnerMessageEl.textContent = `${finalTotals[0].name} (Player ${finalTotals[0].player})의 승리입니다!`;
+            }
+            
+            if(gameMode === 'online' && !isFinishedByOpponent) {
+                await updateDoc(doc(db, "games", gameId), { status: 'finished' });
             } else if (gameMode === 'ai' && state.status !== 'finished') { // AI 모드일 때도 state 업데이트
-updateGameState({ status: 'finished' });
-}
-gameOverModal.classList.remove('hidden');
-}
+                updateGameState({ status: 'finished' });
+            }
+            gameOverModal.classList.remove('hidden');
+        }
 
-function getDieHTML(value, index, isKept) { 
-const keptClass = isKept ? 'kept' : '';
-const dots = [[],['<circle cx="50" cy="50" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="50" cy="50" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="50" cy="50" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="25" cy="50" r="8"/>','<circle cx="75" cy="50" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>']];
-return `<div class="die w-14 h-14 sm:w-20 sm:h-20 bg-white rounded-lg shadow-md border-4 border-gray-200 flex items-center justify-center ${keptClass}" data-index="${index}"><svg viewBox="0 0 100 100" class="w-full h-full fill-current text-gray-800">${dots[value].join('')}</svg></div>`;
-}
-function calculateScores(dice) {
-const counts = new Array(7).fill(0); let sum = 0;
-dice.forEach(d => { counts[d]++; sum += d; });
-const potential = {};
-Object.keys(SCORE_CATEGORIES.upper).forEach((id, i) => { potential[id] = counts[i+1] * (i+1); });
-const countsValues = Object.values(counts);
-potential.threeOfAKind = countsValues.some(c => c >= 3) ? sum : 0;
-potential.fourOfAKind = countsValues.some(c => c >= 4) ? sum : 0;
-potential.fullHouse = countsValues.includes(3) && countsValues.includes(2) ? 25 : 0;
-potential.yatzy = countsValues.some(c => c >= 5) ? 50 : 0;
-potential.chance = sum;
-const uniqueDiceStr = Array.from(new Set(dice)).sort().join('');
-potential.smallStraight = /1234|2345|3456/.test(uniqueDiceStr) ? 30 : 0;
-potential.largeStraight = /12345|23456/.test(uniqueDiceStr) ? 40 : 0;
-return potential;
-}
-function getPlayerTotal(playerIndex) {
-if(!state.scores || !state.scores[playerIndex]) return 0;
-const playerScores = state.scores[playerIndex]; let upperSubtotal = 0;
-Object.keys(SCORE_CATEGORIES.upper).forEach(id => { if (playerScores[id] !== null) upperSubtotal += playerScores[id]; });
-const bonus = upperSubtotal >= 63 ? 35 : 0; let total = upperSubtotal + bonus;
-Object.keys(SCORE_CATEGORIES.lower).forEach(id => { if (playerScores[id] !== null) total += playerScores[id]; });
-return total;
-}
-
+        function getDieHTML(value, index, isKept) { 
+            const keptClass = isKept ? 'kept' : '';
+            const dots = [[],['<circle cx="50" cy="50" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="50" cy="50" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="50" cy="50" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>'],['<circle cx="25" cy="25" r="8"/>','<circle cx="75" cy="25" r="8"/>','<circle cx="25" cy="50" r="8"/>','<circle cx="75" cy="50" r="8"/>','<circle cx="25" cy="75" r="8"/>','<circle cx="75" cy="75" r="8"/>']];
+            return `<div class="die w-14 h-14 sm:w-20 sm:h-20 bg-white rounded-lg shadow-md border-4 border-gray-200 flex items-center justify-center ${keptClass}" data-index="${index}"><svg viewBox="0 0 100 100" class="w-full h-full fill-current text-gray-800">${dots[value].join('')}</svg></div>`;
+        }
+        function calculateScores(dice) {
+            const counts = new Array(7).fill(0); let sum = 0;
+            dice.forEach(d => { counts[d]++; sum += d; });
+            const potential = {};
+            Object.keys(SCORE_CATEGORIES.upper).forEach((id, i) => { potential[id] = counts[i+1] * (i+1); });
+            const countsValues = Object.values(counts);
+            potential.threeOfAKind = countsValues.some(c => c >= 3) ? sum : 0;
+            potential.fourOfAKind = countsValues.some(c => c >= 4) ? sum : 0;
+            potential.fullHouse = countsValues.includes(3) && countsValues.includes(2) ? 25 : 0;
+            potential.yatzy = countsValues.some(c => c >= 5) ? 50 : 0;
+            potential.chance = sum;
+            const uniqueDiceStr = Array.from(new Set(dice)).sort().join('');
+            potential.smallStraight = /1234|2345|3456/.test(uniqueDiceStr) ? 30 : 0;
+            potential.largeStraight = /12345|23456/.test(uniqueDiceStr) ? 40 : 0;
+            return potential;
+        }
+        function getPlayerTotal(playerIndex) {
+            if(!state.scores || !state.scores[playerIndex]) return 0;
+            const playerScores = state.scores[playerIndex]; let upperSubtotal = 0;
+            Object.keys(SCORE_CATEGORIES.upper).forEach(id => { if (playerScores[id] !== null) upperSubtotal += playerScores[id]; });
+            const bonus = upperSubtotal >= 63 ? 35 : 0; let total = upperSubtotal + bonus;
+            Object.keys(SCORE_CATEGORIES.lower).forEach(id => { if (playerScores[id] !== null) total += playerScores[id]; });
+            return total;
+        }
+        
         // --- AI LOGIC ---
 
         /**
          * AI의 턴을 비동기적으로 실행합니다.
          */
-async function runAITurn() {
-            // BUG FIX 1: AI 턴 시작 시, 턴 시작 타이머(잠금)를 즉시 해제하여 다음 턴이 예약될 수 있도록 함
+        async function runAITurn() {
             // 턴 시작 시, aiTurnTimeout 잠금을 해제하여 다음 턴이 예약될 수 있도록 함
-if (aiTurnTimeout) { clearTimeout(aiTurnTimeout); aiTurnTimeout = null; }
-if (scoreMessageTimeout) { clearTimeout(scoreMessageTimeout); scoreMessageTimeout = null; }
+            if (aiTurnTimeout) { clearTimeout(aiTurnTimeout); aiTurnTimeout = null; }
+            if (scoreMessageTimeout) { clearTimeout(scoreMessageTimeout); scoreMessageTimeout = null; }
 
-            let aiDice = state.dice;
-            let aiKept = state.kept;
-            let aiRollsLeft = state.rollsLeft;
+            const aiPlayerScores = state.scores[1];
 
-const aiPlayerScores = state.scores[1];
-
-// AI 1st Roll
-            if (aiRollsLeft === 3) {
-                aiDice = aiDice.map(() => Math.floor(Math.random() * 6) + 1);
-                aiRollsLeft--;
-                updateGameState({ dice: aiDice, kept: aiKept, rollsLeft: aiRollsLeft, isTurnStarted: true, message: "AI가 주사위를 굴립니다..." });
+            // AI 1st Roll
             if (state.rollsLeft === 3) {
                 const newDice = state.dice.map(() => Math.floor(Math.random() * 6) + 1);
                 updateGameState({ dice: newDice, kept: [false,false,false,false,false], rollsLeft: 2, isTurnStarted: true, message: "AI가 주사위를 굴립니다..." });
@@ -701,19 +674,12 @@ const aiPlayerScores = state.scores[1];
             let earlyScore = checkEarlyScore(potential, aiPlayerScores);
             if (earlyScore) {
                 return await scoreAndEndAITurn(earlyScore.id, earlyScore.score);
-}
+            }
 
-// AI 2nd Roll Logic
-            // BUG FIX 1 (계속): AI의 '생각하는 시간' 딜레이가 aiTurnTimeout을 재사용하지 않도록 수정
-await new Promise(resolve => setTimeout(resolve, 1500));
-            if(state.status === 'finished') return; // Game ended while AI was thinking
+            // AI 2nd Roll Logic
+            await new Promise(resolve => setTimeout(resolve, 1500));
             if(state.status === 'finished') return; // 딜레이 중에 게임이 끝날 수 있음
-
-            let bestKeep = aiDecideKeep(aiDice, aiPlayerScores);
-            aiKept = bestKeep.kept;
-            aiDice = aiDice.map((d, i) => aiKept[i] ? d : Math.floor(Math.random() * 6) + 1);
-            aiRollsLeft--;
-            updateGameState({ dice: aiDice, kept: aiKept, rollsLeft: aiRollsLeft, message: `AI가 ${bestKeep.reason} (을)를 위해 주사위를 굴립니다...` });
+            
             let bestKeep = aiDecideKeep(state.dice, aiPlayerScores);
             let newDice = state.dice.map((d, i) => bestKeep.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
             updateGameState({ dice: newDice, kept: bestKeep.kept, rollsLeft: 1, message: `AI가 ${bestKeep.reason} (을)를 위해 주사위를 굴립니다...` });
@@ -725,28 +691,20 @@ await new Promise(resolve => setTimeout(resolve, 1500));
                 return await scoreAndEndAITurn(earlyScore.id, earlyScore.score);
             }
 
-// AI 3rd Roll Logic
-await new Promise(resolve => setTimeout(resolve, 1500));
-            if(state.status === 'finished') return;
+            // AI 3rd Roll Logic
+            await new Promise(resolve => setTimeout(resolve, 1500));
             if(state.status === 'finished') return; 
-
-            bestKeep = aiDecideKeep(aiDice, aiPlayerScores);
-            aiKept = bestKeep.kept;
-            aiDice = aiDice.map((d, i) => aiKept[i] ? d : Math.floor(Math.random() * 6) + 1);
-            aiRollsLeft--;
-            updateGameState({ dice: aiDice, kept: aiKept, rollsLeft: aiRollsLeft, message: `AI가 ${bestKeep.reason} (을)를 위해 마지막으로 굴립니다...` });
+            
             bestKeep = aiDecideKeep(state.dice, aiPlayerScores);
             newDice = state.dice.map((d, i) => bestKeep.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
             updateGameState({ dice: newDice, kept: bestKeep.kept, rollsLeft: 0, message: `AI가 ${bestKeep.reason} (을)를 위해 마지막으로 굴립니다...` });
 
-            // AI Score Selection
             // AI Final Score Selection
-await new Promise(resolve => setTimeout(resolve, 1500));
-if(state.status === 'finished') return;
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            if(state.status === 'finished') return;
 
-            const potential = calculateScores(aiDice);
             potential = calculateScores(state.dice);
-const bestChoice = aiBestChoice(aiPlayerScores, potential);
+            const bestChoice = aiBestChoice(aiPlayerScores, potential);
             return await scoreAndEndAITurn(bestChoice.id, bestChoice.score);
         }
 
@@ -754,57 +712,48 @@ const bestChoice = aiBestChoice(aiPlayerScores, potential);
          * AI 턴 종료 및 점수 기록 공통 함수
          */
         async function scoreAndEndAITurn(id, score) {
-const newScores = [...state.scores];
-            newScores[1][bestChoice.id] = bestChoice.score;
-            
-            const scoreMessage = `AI (Player 2)가 ${SCORE_CATEGORIES.upper[bestChoice.id] || SCORE_CATEGORIES.lower[bestChoice.id]}에 ${bestChoice.score}점을 기록했습니다.`;
+            const newScores = [...state.scores];
             newScores[1][id] = score; // AI는 player 1
             const scoreName = SCORE_CATEGORIES.upper[id] || SCORE_CATEGORIES.lower[id];
             const scoreMessage = `AI (Player 2)가 ${scoreName}에 ${score}점을 기록했습니다.`;
 
-            // BUG FIX 2: AI 턴 종료 시, 다음 플레이어와 라운드를 계산하는 로직을 selectScore와 동일하게 수정
-            let nextPlayer = state.currentPlayer + 1;
-            let nextRound = state.round;
-            if (nextPlayer >= state.players.length) {
-                nextPlayer = 0;
-                nextRound++;
             let nextPlayer = 0; // 0 (Human)
             let nextRound = state.round; // 아직 턴이 안 끝남
             
             // AI는 2P이므로, AI 턴이 끝나면 round가 증가
             if (state.currentPlayer === 1) {
                 nextRound = state.round + 1;
-}
-
-// 1. Update state with AI's score and message FIRST
-updateGameState({
-scores: newScores,
-message: scoreMessage,
-isTurnStarted: false,
-rollsLeft: 0
-});
+            }
+            
+            // 1. Update state with AI's score and message FIRST
+            updateGameState({
+                scores: newScores,
+                message: scoreMessage,
+                isTurnStarted: false,
+                rollsLeft: 0
+            });
             // 메시지 영역에 점수 메시지 즉시 표시
             document.getElementById('message-area').textContent = scoreMessage;
 
-// 2. Wait, then change turn
-scoreMessageTimeout = setTimeout(async () => {
+            // 2. Wait, then change turn
+            scoreMessageTimeout = setTimeout(async () => {
                 scoreMessageTimeout = null; // 타이머 클리어
-if(state.status === 'finished') return;
-
-if (nextRound > 13) {
-await endGame();
-} else {
-updateGameState({
-currentPlayer: nextPlayer,
-round: nextRound,
-rollsLeft: 3,
-kept: [false, false, false, false, false],
-isTurnStarted: false,
-message: `Player ${nextPlayer + 1} (당신)의 턴입니다.`
-});
-}
-}, 1500); // 1.5초 후 턴 넘김
-}
+                if(state.status === 'finished') return;
+                
+                if (nextRound > 13) {
+                    await endGame();
+                } else {
+                    updateGameState({
+                        currentPlayer: nextPlayer,
+                        round: nextRound,
+                        rollsLeft: 3,
+                        kept: [false, false, false, false, false],
+                        isTurnStarted: false,
+                        message: `Player ${nextPlayer + 1} (당신)의 턴입니다.`
+                    });
+                }
+            }, 1500); // 1.5초 후 턴 넘김
+        }
         
         /**
          * AI가 1, 2차 롤 직후 즉시 획득할 점수가 있는지 확인합니다.
@@ -819,38 +768,32 @@ message: `Player ${nextPlayer + 1} (당신)의 턴입니다.`
         /**
          * AI가 어떤 주사위를 유지(Keep)할지 결정합니다.
          */
-function aiDecideKeep(dice, scores) {
-const counts = new Array(7).fill(0);
-dice.forEach(d => counts[d]++);
-
-// 1. Yatzy or 4 of a Kind
-for (let i = 6; i >= 1; i--) {
-if (counts[i] >= 4 && scores.yatzy === null) return { kept: dice.map(d => d === i), reason: 'Yatzy' };
-if (counts[i] >= 4 && scores.fourOfAKind === null) return { kept: dice.map(d => d === i), reason: '4 of a Kind' };
-}
-            // 2. Full House
+        function aiDecideKeep(dice, scores) {
+            const counts = new Array(7).fill(0);
+            dice.forEach(d => counts[d]++);
+            
+            // 1. Yatzy or 4 of a Kind
+            for (let i = 6; i >= 1; i--) {
+                if (counts[i] >= 4 && scores.yatzy === null) return { kept: dice.map(d => d === i), reason: 'Yatzy' };
+                if (counts[i] >= 4 && scores.fourOfAKind === null) return { kept: dice.map(d => d === i), reason: '4 of a Kind' };
+            }
             // 2. Full House (이미 완성됨)
-if (counts.includes(3) && counts.includes(2) && scores.fullHouse === null) return { kept: [true,true,true,true,true], reason: 'Full House' };
-            // 3. Keep 3 of a Kind
+            if (counts.includes(3) && counts.includes(2) && scores.fullHouse === null) return { kept: [true,true,true,true,true], reason: 'Full House' };
             
             // 3. Keep 3 of a Kind (Full House 또는 4 of a kind 노리기)
-for (let i = 6; i >= 1; i--) {
-if (counts[i] === 3) return { kept: dice.map(d => d === i), reason: '3 of a Kind' };
-}
-// 4. Straights (Keep existing straight)
-const uniqueSorted = Array.from(new Set(dice)).sort().join('');
-if (/12345|23456/.test(uniqueSorted) && scores.largeStraight === null) return { kept: [true,true,true,true,true], reason: 'Large Straight' };
-// 4b. Small straight (부분집합 유지)
-if (/1234|2345|3456/.test(uniqueSorted) && scores.smallStraight === null) {
-let straightToKeep = [1,2,3,4];
-if (/2345/.test(uniqueSorted)) straightToKeep = [2,3,4,5];
-if (/3456/.test(uniqueSorted)) straightToKeep = [3,4,5,6];
-return { kept: dice.map(d => straightToKeep.includes(d)), reason: 'Small Straight' };
-}
-            // 5. Keep high numbers for upper section (if not filled)
-            for (let i = 6; i >= 4; i--) {
-                const id = ['','','','fours','fives','sixes'][i-1];
-                if (scores[id] === null && counts[i] > 0) return { kept: dice.map(d => d === i), reason: `${i}` };
+            for (let i = 6; i >= 1; i--) {
+                if (counts[i] === 3) return { kept: dice.map(d => d === i), reason: '3 of a Kind' };
+            }
+            // 4. Straights (Keep existing straight)
+            const uniqueSorted = Array.from(new Set(dice)).sort().join('');
+            if (/12345|23456/.test(uniqueSorted) && scores.largeStraight === null) return { kept: [true,true,true,true,true], reason: 'Large Straight' };
+            // 4b. Small straight (부분집합 유지)
+            if (/1234|2345|3456/.test(uniqueSorted) && scores.smallStraight === null) {
+                let straightToKeep = [1,2,3,4];
+                if (/2345/.test(uniqueSorted)) straightToKeep = [2,3,4,5];
+                if (/3456/.test(uniqueSorted)) straightToKeep = [3,4,5,6];
+                return { kept: dice.map(d => straightToKeep.includes(d)), reason: 'Small Straight' };
+            }
             // 5. Keep numbers for upper section (if not filled), highest first
             const upperIds = ['sixes', 'fives', 'fours', 'threes', 'twos', 'aces'];
             for (let i = 6; i >= 1; i--) {
@@ -858,136 +801,114 @@ return { kept: dice.map(d => straightToKeep.includes(d)), reason: 'Small Straigh
                 if (scores[id] === null && counts[i] > 0) {
                     return { kept: dice.map(d => d === i), reason: `${i}` };
                 }
-}
-            // 6. Keep pairs
+            }
             // 6. Keep pairs (3 of a kind 노리기)
-for (let i = 6; i >= 1; i--) {
-if (counts[i] === 2) return { kept: dice.map(d => d === i), reason: 'Pair' };
-}
-            // 7. Keep highest die
+             for (let i = 6; i >= 1; i--) {
+                if (counts[i] === 2) return { kept: dice.map(d => d === i), reason: 'Pair' };
+            }
             // 7. Keep highest die (Chance 또는 Upper 노리기)
-const maxDie = Math.max(...dice);
-return { kept: dice.map(d => d === maxDie), reason: 'Highest Die' };
-}
-
+            const maxDie = Math.max(...dice);
+            return { kept: dice.map(d => d === maxDie), reason: 'Highest Die' };
+        }
+        
         /**
          * AI가 최종 롤 이후 어떤 점수를 선택할지 결정합니다.
          */
-function aiBestChoice(scores, potential) {
-let bestId = 'chance';
-let maxScore = -1;
-
+        function aiBestChoice(scores, potential) {
+            let bestId = 'chance';
+            let maxScore = -1;
+            
             // 1. 점수 높은 순으로 정렬
-const sortedPotential = Object.entries(potential).sort(([,a],[,b]) => b-a);
-
-for (const [id, score] of sortedPotential) {
-                if (scores[id] === null) {
-                    // Try to get Yatzy if possible
-                    if (id === 'yatzy' && score > 0) return { id, score };
-                    // Try to get Large Straight
-                    if (id === 'largeStraight' && score > 0) return { id, score };
-                    // Try to get Small Straight
-                    if (id === 'smallStraight' && score > 0) return { id, score };
-                    // Try to get Full House
-                    if (id === 'fullHouse' && score > 0) return { id, score };
-                    
+            const sortedPotential = Object.entries(potential).sort(([,a],[,b]) => b-a);
+            
+            for (const [id, score] of sortedPotential) {
                 if (scores[id] === null) { // 빈 칸 중에서
                     // 2. 0점 이상인 가장 높은 점수 선택
-if (score > maxScore) {
-maxScore = score;
-bestId = id;
-}
-}
-}
-
-            // If all high score options are taken, find the first available slot
-            if (maxScore === -1 || maxScore === 0) { // 0점이라도 빈칸에 넣어야 함
-                for (const id in scores) {
+                    if (score > maxScore) {
+                        maxScore = score;
+                        bestId = id;
+                    }
+                }
+            }
+            
             // 3. 만약 모든 잠재 점수가 0점이라서 maxScore가 0 이하면 (예: Yatzy, LS 등이 0점)
             if (maxScore <= 0) {
                 // 상단 항목(Aces~Sixes)이 비어있으면 0점이라도 기록 (보너스 포기)
                 const upperIds = ['aces', 'twos', 'threes', 'fours', 'fives', 'sixes'];
                 for (const id of upperIds) {
-if (scores[id] === null) {
-                         // 상단 항목이 0점이면 낮은 숫자부터 채우기 (보너스 포기)
-                        if (SCORE_CATEGORIES.upper[id]) {
-                            return { id: id, score: potential[id] };
-                        }
+                    if (scores[id] === null) {
                         return { id: id, score: potential[id] };
-}
-}
-                 // 하단 항목이 0점이면 어쩔 수 없이 채우기 (Yatzy, LS 등)
-                for (const id in scores) {
-                     if (scores[id] === null && SCORE_CATEGORIES.lower[id]) {
+                    }
+                }
                  // 상단이 다 찼으면, 하단 항목(Yatzy, LS 등)에 0점 기록
                 const lowerIds = ['yatzy', 'largeStraight', 'smallStraight', 'fullHouse', 'fourOfAKind', 'threeOfAKind', 'chance'];
                 for (const id of lowerIds) {
                      if (scores[id] === null) {
-return { id: id, score: potential[id] };
-}
-}
-}
-
-return { id: bestId, score: maxScore };
-}
+                         return { id: id, score: potential[id] };
+                     }
+                }
+            }
+            
+            return { id: bestId, score: maxScore };
+        }
         // --- END AI LOGIC ---
 
-findMatchBtn.addEventListener('click', findMatch);
-startAiBtn.addEventListener('click', startAiGame);
-cancelMatchBtn.addEventListener('click', cancelMatch);
-rollButton.addEventListener('click', rollDice);
-diceContainer.addEventListener('click', e => {
-const dieEl = e.target.closest('.die');
-if (dieEl) toggleKeep(parseInt(dieEl.dataset.index));
-});
+        findMatchBtn.addEventListener('click', findMatch);
+        startAiBtn.addEventListener('click', startAiGame);
+        cancelMatchBtn.addEventListener('click', cancelMatch);
+        rollButton.addEventListener('click', rollDice);
+        diceContainer.addEventListener('click', e => {
+            const dieEl = e.target.closest('.die');
+            if (dieEl) toggleKeep(parseInt(dieEl.dataset.index));
+        });
+        
+        leaveGameButton.addEventListener('click', async () => {
+            if (gameMode === 'online' && gameId) {
+                try {
+                    await deleteDoc(doc(db, "games", gameId));
+                } catch(e) {
+                    console.error("Error deleting game doc:", e);
+                }
+            }
+            init();
+        });
+        modalNewGameButton.addEventListener('click', init);
+        
+        // Rules Modal Listeners
+        function showRules() { gameRulesModal.classList.remove('hidden'); }
+        function hideRules() { gameRulesModal.classList.add('hidden'); }
 
-leaveGameButton.addEventListener('click', async () => {
-if (gameMode === 'online' && gameId) {
-try {
-await deleteDoc(doc(db, "games", gameId));
-} catch(e) {
-console.error("Error deleting game doc:", e);
-}
-}
-init();
-});
-modalNewGameButton.addEventListener('click', init);
+        showRulesBtnSetup.addEventListener('click', showRules);
+        showRulesBtnGame.addEventListener('click', showRules);
+        closeRulesBtn.addEventListener('click', hideRules);
+        closeRulesBtnBottom.addEventListener('click', hideRules);
+        gameRulesModal.addEventListener('click', (e) => {
+            if (e.target === gameRulesModal) { // Click on the background overlay
+                hideRules();
+            }
+        });
+        
+        createScoreboardHTML();
+        init();
 
-// Rules Modal Listeners
-function showRules() { gameRulesModal.classList.remove('hidden'); }
-function hideRules() { gameRulesModal.classList.add('hidden'); }
-
-showRulesBtnSetup.addEventListener('click', showRules);
-showRulesBtnGame.addEventListener('click', showRules);
-closeRulesBtn.addEventListener('click', hideRules);
-closeRulesBtnBottom.addEventListener('click', hideRules);
-gameRulesModal.addEventListener('click', (e) => {
-if (e.target === gameRulesModal) { // Click on the background overlay
-hideRules();
-}
-});
-
-createScoreboardHTML();
-init();
-
-function createScoreboardHTML() {
-let upperHTML = '', lowerHTML = '';
-for (const [id, name] of Object.entries(SCORE_CATEGORIES.upper)) {
-upperHTML += `<tr class="score-row" data-id="${id}"><td>${name}</td><td class="score text-right font-semibold"></td></tr>`;
-}
-for (const [id, name] of Object.entries(SCORE_CATEGORIES.lower)) {
-lowerHTML += `<tr class="score-row" data-id="${id}"><td>${name}</td><td class="score text-right font-semibold"></td></tr>`;
-}
-document.getElementById('upper-section-body').innerHTML = upperHTML;
-document.getElementById('lower-section-body').innerHTML = lowerHTML;
-document.querySelectorAll('#game-screen .score-row').forEach(row => row.addEventListener('click', selectScore));
-}
-} catch (error) {
-console.error("Firebase 초기화 오류:", error);
-document.body.innerHTML = `<div class="p-4 text-red-700 bg-red-100 rounded-lg">Firebase 설정에 오류가 발생했습니다. 프로젝트 ID가 고유한지, API 키가 올른지 확인해주세요. 자세한 내용은 콘솔을 확인하세요.</div>`;
-}
+        function createScoreboardHTML() {
+            let upperHTML = '', lowerHTML = '';
+            for (const [id, name] of Object.entries(SCORE_CATEGORIES.upper)) {
+                upperHTML += `<tr class="score-row" data-id="${id}"><td>${name}</td><td class="score text-right font-semibold"></td></tr>`;
+            }
+            for (const [id, name] of Object.entries(SCORE_CATEGORIES.lower)) {
+                lowerHTML += `<tr class="score-row" data-id="${id}"><td>${name}</td><td class="score text-right font-semibold"></td></tr>`;
+            }
+            document.getElementById('upper-section-body').innerHTML = upperHTML;
+            document.getElementById('lower-section-body').innerHTML = lowerHTML;
+            document.querySelectorAll('#game-screen .score-row').forEach(row => row.addEventListener('click', selectScore));
+        }
+    } catch (error) {
+        console.error("Firebase 초기화 오류:", error);
+        document.body.innerHTML = `<div class="p-4 text-red-700 bg-red-100 rounded-lg">Firebase 설정에 오류가 발생했습니다. 프로젝트 ID가 고유한지, API 키가 올른지 확인해주세요. 자세한 내용은 콘솔을 확인하세요.</div>`;
+    }
 </script>
 
 </body>
 </html>
-~
+
