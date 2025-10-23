@@ -219,8 +219,8 @@
         let userId, myPlayerIndex, gameId;
         let gameMode = null; // 'online' or 'ai'
         let gameUnsubscribe = null, waitingUnsubscribe = null;
-        let aiTurnTimeout = null; // AI 턴 타임아웃
-        let scoreMessageTimeout = null; // 점수 메시지 타임아웃
+        let aiTurnTimeout = null; // AI 턴 *시작* 타이머 (잠금 역할)
+        let scoreMessageTimeout = null; // 점수 메시지 타이머
 
         const SCORE_CATEGORIES = {
             upper: { aces: '1 (Aces)', twos: '2 (Twos)', threes: '3 (Threes)', fours: '4 (Fours)', fives: '5 (Fives)', sixes: '6 (Sixes)' },
@@ -376,6 +376,7 @@
             if (state.status === 'finished') {
                 endGame(true);
             } else if (gameMode === 'ai' && state.currentPlayer === 1 && !aiTurnTimeout) { // AI's turn
+                 // aiTurnTimeout은 AI 턴을 *시작*하는 역할만 하고, runAITurn 내부에서 null로 클리어됩니다.
                  aiTurnTimeout = setTimeout(runAITurn, 1000); // AI "thinks" for a second
             }
         }
@@ -596,7 +597,7 @@
             
             if(gameMode === 'online' && !isFinishedByOpponent) {
                 await updateDoc(doc(db, "games", gameId), { status: 'finished' });
-            } else {
+            } else if (gameMode === 'ai') { // AI 모드일 때도 state 업데이트
                 updateGameState({ status: 'finished' });
             }
             gameOverModal.classList.remove('hidden');
@@ -633,6 +634,7 @@
         }
         
         async function runAITurn() {
+            // BUG FIX 1: AI 턴 시작 시, 턴 시작 타이머(잠금)를 즉시 해제하여 다음 턴이 예약될 수 있도록 함
             if (aiTurnTimeout) { clearTimeout(aiTurnTimeout); aiTurnTimeout = null; }
             if (scoreMessageTimeout) { clearTimeout(scoreMessageTimeout); scoreMessageTimeout = null; }
 
@@ -650,7 +652,8 @@
             }
 
             // AI 2nd Roll Logic
-            await new Promise(resolve => aiTurnTimeout = setTimeout(resolve, 1500));
+            // BUG FIX 1 (계속): AI의 '생각하는 시간' 딜레이가 aiTurnTimeout을 재사용하지 않도록 수정
+            await new Promise(resolve => setTimeout(resolve, 1500));
             if(state.status === 'finished') return; // Game ended while AI was thinking
             
             let bestKeep = aiDecideKeep(aiDice, aiPlayerScores);
@@ -660,7 +663,7 @@
             updateGameState({ dice: aiDice, kept: aiKept, rollsLeft: aiRollsLeft, message: `AI가 ${bestKeep.reason} (을)를 위해 주사위를 굴립니다...` });
 
             // AI 3rd Roll Logic
-            await new Promise(resolve => aiTurnTimeout = setTimeout(resolve, 1500));
+            await new Promise(resolve => setTimeout(resolve, 1500));
             if(state.status === 'finished') return;
             
             bestKeep = aiDecideKeep(aiDice, aiPlayerScores);
@@ -670,7 +673,7 @@
             updateGameState({ dice: aiDice, kept: aiKept, rollsLeft: aiRollsLeft, message: `AI가 ${bestKeep.reason} (을)를 위해 마지막으로 굴립니다...` });
 
             // AI Score Selection
-            await new Promise(resolve => aiTurnTimeout = setTimeout(resolve, 1500));
+            await new Promise(resolve => setTimeout(resolve, 1500));
             if(state.status === 'finished') return;
 
             const potential = calculateScores(aiDice);
@@ -680,8 +683,13 @@
             
             const scoreMessage = `AI (Player 2)가 ${SCORE_CATEGORIES.upper[bestChoice.id] || SCORE_CATEGORIES.lower[bestChoice.id]}에 ${bestChoice.score}점을 기록했습니다.`;
 
-            let nextPlayer = 0; // Back to human
-            let nextRound = state.round + 1;
+            // BUG FIX 2: AI 턴 종료 시, 다음 플레이어와 라운드를 계산하는 로직을 selectScore와 동일하게 수정
+            let nextPlayer = state.currentPlayer + 1;
+            let nextRound = state.round;
+            if (nextPlayer >= state.players.length) {
+                nextPlayer = 0;
+                nextRound++;
+            }
             
             // 1. Update state with AI's score and message FIRST
             updateGameState({
@@ -728,7 +736,13 @@
             // 4. Straights (Keep existing straight)
             const uniqueSorted = Array.from(new Set(dice)).sort().join('');
             if (/12345|23456/.test(uniqueSorted) && scores.largeStraight === null) return { kept: [true,true,true,true,true], reason: 'Large Straight' };
-            if (/1234|2345|3456/.test(uniqueSorted) && scores.smallStraight === null) return { kept: dice.map(d => [1,2,3,4,5,6].slice(uniqueSorted[0]-1, uniqueSorted[0]+3).includes(d)), reason: 'Small Straight' };
+            // 4b. Small straight (부분집합 유지)
+            if (/1234|2345|3456/.test(uniqueSorted) && scores.smallStraight === null) {
+                let straightToKeep = [1,2,3,4];
+                if (/2345/.test(uniqueSorted)) straightToKeep = [2,3,4,5];
+                if (/3456/.test(uniqueSorted)) straightToKeep = [3,4,5,6];
+                return { kept: dice.map(d => straightToKeep.includes(d)), reason: 'Small Straight' };
+            }
             // 5. Keep high numbers for upper section (if not filled)
             for (let i = 6; i >= 4; i--) {
                 const id = ['','','','fours','fives','sixes'][i-1];
@@ -768,11 +782,20 @@
             }
             
             // If all high score options are taken, find the first available slot
-            if (maxScore === -1) {
+            if (maxScore === -1 || maxScore === 0) { // 0점이라도 빈칸에 넣어야 함
                 for (const id in scores) {
                     if (scores[id] === null) {
-                        return { id: id, score: potential[id] };
+                         // 상단 항목이 0점이면 낮은 숫자부터 채우기 (보너스 포기)
+                        if (SCORE_CATEGORIES.upper[id]) {
+                            return { id: id, score: potential[id] };
+                        }
                     }
+                }
+                 // 하단 항목이 0점이면 어쩔 수 없이 채우기 (Yatzy, LS 등)
+                for (const id in scores) {
+                     if (scores[id] === null && SCORE_CATEGORIES.lower[id]) {
+                         return { id: id, score: potential[id] };
+                     }
                 }
             }
             
@@ -831,7 +854,7 @@
         }
     } catch (error) {
         console.error("Firebase 초기화 오류:", error);
-        document.body.innerHTML = `<div class="p-4 text-red-700 bg-red-100 rounded-lg">Firebase 설정에 오류가 발생했습니다. 프로젝트 ID가 고유한지, API 키가 올바른지 확인해주세요. 자세한 내용은 콘솔을 확인하세요.</div>`;
+        document.body.innerHTML = `<div class="p-4 text-red-700 bg-red-100 rounded-lg">Firebase 설정에 오류가 발생했습니다. 프로젝트 ID가 고유한지, API 키가 올른지 확인해주세요. 자세한 내용은 콘솔을 확인하세요.</div>`;
     }
 </script>
 
