@@ -368,23 +368,23 @@
             updateUI();
         }
 
-        // --- Universal Game State Updater ---
+        /**
+         * AI 모드에서 로컬 게임 상태를 업데이트합니다.
+         * 중요: 이 함수는 더 이상 AI 턴을 트리거하지 않습니다.
+         */
         function updateGameState(newState) {
             state = { ...state, ...newState };
             updateUI();
             
             if (state.status === 'finished') {
                 endGame(true);
-            } else if (gameMode === 'ai' && state.currentPlayer === 1 && !aiTurnTimeout) { // AI's turn
-                 // aiTurnTimeout은 AI 턴을 *시작*하는 역할만 하고, runAITurn 내부에서 null로 클리어됩니다.
-                 aiTurnTimeout = setTimeout(runAITurn, 1000); // AI "thinks" for a second
             }
+            // *** AI 턴 트리거 로직을 여기서 제거했습니다. ***
         }
 
         async function findGameAndJoin() {
             if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
             const gamesRef = collection(db, "games");
-            // BUG FIX: Changed '==' to '"=="'
             const q = query(gamesRef, where("players", "array-contains", userId), where("status", "==", "active"));
             const snapshot = await getDocs(q);
             if(!snapshot.empty) {
@@ -430,7 +430,10 @@
             let titlePlayerName = isMyTurn ? '내' : (gameMode === 'online' ? '상대' : 'AI');
             document.getElementById('scoreboard-title').textContent = `${titlePlayerName} 점수판 (Player ${state.currentPlayer + 1})`;
             
-            document.getElementById('message-area').textContent = state.message || '';
+            // 점수 기록 메시지가 아닐 때만 일반 메시지 표시
+            if (!scoreMessageTimeout) {
+                document.getElementById('message-area').textContent = state.message || '';
+            }
 
             rollButton.disabled = !isMyTurn || state.rollsLeft === 0 || (state.isTurnStarted === false && state.rollsLeft < 3);
             rollButton.classList.toggle('opacity-50', rollButton.disabled);
@@ -520,11 +523,19 @@
             
             // 1. Get score and ID
             const id = row.dataset.id;
-            const scoreName = SCORE_CATEGORIES.upper[id] || SCORE_CATEGORIES.lower[id];
             const potential = calculateScores(state.dice);
-            const newScores = [...state.scores];
             const scoredValue = potential[id];
-            newScores[myPlayerIndex][id] = scoredValue;
+            
+            await scoreAndEndHumanTurn(id, scoredValue);
+        }
+        
+        // AI 턴 종료와 로직이 동일하여 player 턴도 함수로 분리
+        async function scoreAndEndHumanTurn(id, score) {
+            const newScores = [...state.scores];
+            newScores[myPlayerIndex][id] = score;
+            const scoreName = SCORE_CATEGORIES.upper[id] || SCORE_CATEGORIES.lower[id];
+            const playerName = (myPlayerIndex === 0) ? "Player 1" : "Player 2";
+            const scoreMessage = `${playerName} (당신)이 ${scoreName}에 ${score}점을 기록했습니다.`;
 
             // 2. Calculate next turn
             let nextPlayer = state.currentPlayer + 1;
@@ -533,31 +544,33 @@
                 nextPlayer = 0;
                 nextRound++;
             }
-            
-            // 3. Create message
-            const playerName = (myPlayerIndex === 0) ? "Player 1" : "Player 2";
-            const scoreMessage = `${playerName} (당신)이 ${scoreName}에 ${scoredValue}점을 기록했습니다.`;
 
-            // 4. Update doc/state with score and message (disables UI)
+            // 3. Update doc/state with score and message (disables UI)
             const scoreUpdateState = {
                 scores: newScores,
                 message: scoreMessage,
                 isTurnStarted: false, // Prevents further action
                 rollsLeft: 0 // Prevents further rolls
             };
-            
+
+            // 메시지 영역에 점수 메시지 즉시 표시
+            document.getElementById('message-area').textContent = scoreMessage;
+
             if (gameMode === 'online') {
                 await updateDoc(doc(db, "games", gameId), scoreUpdateState);
             } else {
                 updateGameState(scoreUpdateState);
             }
             
-            // 5. Wait for 1.5 seconds
+            // 4. Wait for 1.5 seconds
             scoreMessageTimeout = setTimeout(async () => {
+                scoreMessageTimeout = null; // 타이머 클리어
+                if(state.status === 'finished') return; // 이미 게임 종료됨
+
                 if (nextRound > 13) {
                     await endGame();
                 } else {
-                    // 6. Update doc/state to change turn
+                    // 5. Update doc/state to change turn
                     const nextTurnState = {
                         currentPlayer: nextPlayer,
                         round: nextRound,
@@ -570,6 +583,11 @@
                         await updateDoc(doc(db, "games", gameId), nextTurnState);
                     } else {
                         updateGameState(nextTurnState);
+                        
+                        // *** FIX: AI 턴은 오직 사람 턴이 끝난 직후에만 트리거됩니다. ***
+                        if (gameMode === 'ai' && nextPlayer === 1 && !aiTurnTimeout) {
+                            aiTurnTimeout = setTimeout(runAITurn, 1000); // 1초 후 AI 턴 시작
+                        }
                     }
                 }
             }, 1500); // 1.5초 딜레이
@@ -597,7 +615,7 @@
             
             if(gameMode === 'online' && !isFinishedByOpponent) {
                 await updateDoc(doc(db, "games", gameId), { status: 'finished' });
-            } else if (gameMode === 'ai') { // AI 모드일 때도 state 업데이트
+            } else if (gameMode === 'ai' && state.status !== 'finished') { // AI 모드일 때도 state 업데이트
                 updateGameState({ status: 'finished' });
             }
             gameOverModal.classList.remove('hidden');
@@ -633,62 +651,78 @@
             return total;
         }
         
+        // --- AI LOGIC ---
+
+        /**
+         * AI의 턴을 비동기적으로 실행합니다.
+         */
         async function runAITurn() {
-            // BUG FIX 1: AI 턴 시작 시, 턴 시작 타이머(잠금)를 즉시 해제하여 다음 턴이 예약될 수 있도록 함
+            // 턴 시작 시, aiTurnTimeout 잠금을 해제하여 다음 턴이 예약될 수 있도록 함
             if (aiTurnTimeout) { clearTimeout(aiTurnTimeout); aiTurnTimeout = null; }
             if (scoreMessageTimeout) { clearTimeout(scoreMessageTimeout); scoreMessageTimeout = null; }
-
-            let aiDice = state.dice;
-            let aiKept = state.kept;
-            let aiRollsLeft = state.rollsLeft;
 
             const aiPlayerScores = state.scores[1];
 
             // AI 1st Roll
-            if (aiRollsLeft === 3) {
-                aiDice = aiDice.map(() => Math.floor(Math.random() * 6) + 1);
-                aiRollsLeft--;
-                updateGameState({ dice: aiDice, kept: aiKept, rollsLeft: aiRollsLeft, isTurnStarted: true, message: "AI가 주사위를 굴립니다..." });
+            if (state.rollsLeft === 3) {
+                const newDice = state.dice.map(() => Math.floor(Math.random() * 6) + 1);
+                updateGameState({ dice: newDice, kept: [false,false,false,false,false], rollsLeft: 2, isTurnStarted: true, message: "AI가 주사위를 굴립니다..." });
+            }
+
+            // 1차 롤 직후: 야찌, 라지 스트레이트 등 즉시 획득
+            let potential = calculateScores(state.dice);
+            let earlyScore = checkEarlyScore(potential, aiPlayerScores);
+            if (earlyScore) {
+                return await scoreAndEndAITurn(earlyScore.id, earlyScore.score);
             }
 
             // AI 2nd Roll Logic
-            // BUG FIX 1 (계속): AI의 '생각하는 시간' 딜레이가 aiTurnTimeout을 재사용하지 않도록 수정
             await new Promise(resolve => setTimeout(resolve, 1500));
-            if(state.status === 'finished') return; // Game ended while AI was thinking
+            if(state.status === 'finished') return; // 딜레이 중에 게임이 끝날 수 있음
             
-            let bestKeep = aiDecideKeep(aiDice, aiPlayerScores);
-            aiKept = bestKeep.kept;
-            aiDice = aiDice.map((d, i) => aiKept[i] ? d : Math.floor(Math.random() * 6) + 1);
-            aiRollsLeft--;
-            updateGameState({ dice: aiDice, kept: aiKept, rollsLeft: aiRollsLeft, message: `AI가 ${bestKeep.reason} (을)를 위해 주사위를 굴립니다...` });
+            let bestKeep = aiDecideKeep(state.dice, aiPlayerScores);
+            let newDice = state.dice.map((d, i) => bestKeep.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
+            updateGameState({ dice: newDice, kept: bestKeep.kept, rollsLeft: 1, message: `AI가 ${bestKeep.reason} (을)를 위해 주사위를 굴립니다...` });
+            
+            // 2차 롤 직후: 야찌, 라지 스트레이트 등 즉시 획득
+            potential = calculateScores(state.dice);
+            earlyScore = checkEarlyScore(potential, aiPlayerScores);
+            if (earlyScore) {
+                return await scoreAndEndAITurn(earlyScore.id, earlyScore.score);
+            }
 
             // AI 3rd Roll Logic
             await new Promise(resolve => setTimeout(resolve, 1500));
-            if(state.status === 'finished') return;
+            if(state.status === 'finished') return; 
             
-            bestKeep = aiDecideKeep(aiDice, aiPlayerScores);
-            aiKept = bestKeep.kept;
-            aiDice = aiDice.map((d, i) => aiKept[i] ? d : Math.floor(Math.random() * 6) + 1);
-            aiRollsLeft--;
-            updateGameState({ dice: aiDice, kept: aiKept, rollsLeft: aiRollsLeft, message: `AI가 ${bestKeep.reason} (을)를 위해 마지막으로 굴립니다...` });
+            bestKeep = aiDecideKeep(state.dice, aiPlayerScores);
+            newDice = state.dice.map((d, i) => bestKeep.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
+            updateGameState({ dice: newDice, kept: bestKeep.kept, rollsLeft: 0, message: `AI가 ${bestKeep.reason} (을)를 위해 마지막으로 굴립니다...` });
 
-            // AI Score Selection
+            // AI Final Score Selection
             await new Promise(resolve => setTimeout(resolve, 1500));
             if(state.status === 'finished') return;
 
-            const potential = calculateScores(aiDice);
+            potential = calculateScores(state.dice);
             const bestChoice = aiBestChoice(aiPlayerScores, potential);
-            const newScores = [...state.scores];
-            newScores[1][bestChoice.id] = bestChoice.score;
-            
-            const scoreMessage = `AI (Player 2)가 ${SCORE_CATEGORIES.upper[bestChoice.id] || SCORE_CATEGORIES.lower[bestChoice.id]}에 ${bestChoice.score}점을 기록했습니다.`;
+            return await scoreAndEndAITurn(bestChoice.id, bestChoice.score);
+        }
 
-            // BUG FIX 2: AI 턴 종료 시, 다음 플레이어와 라운드를 계산하는 로직을 selectScore와 동일하게 수정
-            let nextPlayer = state.currentPlayer + 1;
-            let nextRound = state.round;
-            if (nextPlayer >= state.players.length) {
-                nextPlayer = 0;
-                nextRound++;
+        /**
+         * AI 턴 종료 및 점수 기록 공통 함수
+         */
+        async function scoreAndEndAITurn(id, score) {
+            const newScores = [...state.scores];
+            newScores[1][id] = score; // AI는 player 1
+            const scoreName = SCORE_CATEGORIES.upper[id] || SCORE_CATEGORIES.lower[id];
+            const scoreMessage = `AI (Player 2)가 ${scoreName}에 ${score}점을 기록했습니다.`;
+
+            let nextPlayer = 0; // 0 (Human)
+            let nextRound = state.round; // 아직 턴이 안 끝남
+            
+            // AI는 2P이므로, AI 턴이 끝나면 round가 증가
+            if (state.currentPlayer === 1) {
+                nextRound = state.round + 1;
             }
             
             // 1. Update state with AI's score and message FIRST
@@ -698,9 +732,12 @@
                 isTurnStarted: false,
                 rollsLeft: 0
             });
+            // 메시지 영역에 점수 메시지 즉시 표시
+            document.getElementById('message-area').textContent = scoreMessage;
 
             // 2. Wait, then change turn
             scoreMessageTimeout = setTimeout(async () => {
+                scoreMessageTimeout = null; // 타이머 클리어
                 if(state.status === 'finished') return;
                 
                 if (nextRound > 13) {
@@ -717,7 +754,20 @@
                 }
             }, 1500); // 1.5초 후 턴 넘김
         }
+        
+        /**
+         * AI가 1, 2차 롤 직후 즉시 획득할 점수가 있는지 확인합니다.
+         */
+        function checkEarlyScore(potential, scores) {
+            if (scores.yatzy === null && potential.yatzy > 0) return { id: 'yatzy', score: potential.yatzy };
+            if (scores.largeStraight === null && potential.largeStraight > 0) return { id: 'largeStraight', score: potential.largeStraight };
+            if (scores.fullHouse === null && potential.fullHouse > 0) return { id: 'fullHouse', score: potential.fullHouse };
+            return null;
+        }
 
+        /**
+         * AI가 어떤 주사위를 유지(Keep)할지 결정합니다.
+         */
         function aiDecideKeep(dice, scores) {
             const counts = new Array(7).fill(0);
             dice.forEach(d => counts[d]++);
@@ -727,9 +777,10 @@
                 if (counts[i] >= 4 && scores.yatzy === null) return { kept: dice.map(d => d === i), reason: 'Yatzy' };
                 if (counts[i] >= 4 && scores.fourOfAKind === null) return { kept: dice.map(d => d === i), reason: '4 of a Kind' };
             }
-            // 2. Full House
+            // 2. Full House (이미 완성됨)
             if (counts.includes(3) && counts.includes(2) && scores.fullHouse === null) return { kept: [true,true,true,true,true], reason: 'Full House' };
-            // 3. Keep 3 of a Kind
+            
+            // 3. Keep 3 of a Kind (Full House 또는 4 of a kind 노리기)
             for (let i = 6; i >= 1; i--) {
                 if (counts[i] === 3) return { kept: dice.map(d => d === i), reason: '3 of a Kind' };
             }
@@ -743,37 +794,36 @@
                 if (/3456/.test(uniqueSorted)) straightToKeep = [3,4,5,6];
                 return { kept: dice.map(d => straightToKeep.includes(d)), reason: 'Small Straight' };
             }
-            // 5. Keep high numbers for upper section (if not filled)
-            for (let i = 6; i >= 4; i--) {
-                const id = ['','','','fours','fives','sixes'][i-1];
-                if (scores[id] === null && counts[i] > 0) return { kept: dice.map(d => d === i), reason: `${i}` };
+            // 5. Keep numbers for upper section (if not filled), highest first
+            const upperIds = ['sixes', 'fives', 'fours', 'threes', 'twos', 'aces'];
+            for (let i = 6; i >= 1; i--) {
+                const id = upperIds[6-i]; // aces, twos, ... sixes
+                if (scores[id] === null && counts[i] > 0) {
+                    return { kept: dice.map(d => d === i), reason: `${i}` };
+                }
             }
-            // 6. Keep pairs
+            // 6. Keep pairs (3 of a kind 노리기)
              for (let i = 6; i >= 1; i--) {
                 if (counts[i] === 2) return { kept: dice.map(d => d === i), reason: 'Pair' };
             }
-            // 7. Keep highest die
+            // 7. Keep highest die (Chance 또는 Upper 노리기)
             const maxDie = Math.max(...dice);
             return { kept: dice.map(d => d === maxDie), reason: 'Highest Die' };
         }
         
+        /**
+         * AI가 최종 롤 이후 어떤 점수를 선택할지 결정합니다.
+         */
         function aiBestChoice(scores, potential) {
             let bestId = 'chance';
             let maxScore = -1;
             
+            // 1. 점수 높은 순으로 정렬
             const sortedPotential = Object.entries(potential).sort(([,a],[,b]) => b-a);
             
             for (const [id, score] of sortedPotential) {
-                if (scores[id] === null) {
-                    // Try to get Yatzy if possible
-                    if (id === 'yatzy' && score > 0) return { id, score };
-                    // Try to get Large Straight
-                    if (id === 'largeStraight' && score > 0) return { id, score };
-                    // Try to get Small Straight
-                    if (id === 'smallStraight' && score > 0) return { id, score };
-                    // Try to get Full House
-                    if (id === 'fullHouse' && score > 0) return { id, score };
-                    
+                if (scores[id] === null) { // 빈 칸 중에서
+                    // 2. 0점 이상인 가장 높은 점수 선택
                     if (score > maxScore) {
                         maxScore = score;
                         bestId = id;
@@ -781,19 +831,19 @@
                 }
             }
             
-            // If all high score options are taken, find the first available slot
-            if (maxScore === -1 || maxScore === 0) { // 0점이라도 빈칸에 넣어야 함
-                for (const id in scores) {
+            // 3. 만약 모든 잠재 점수가 0점이라서 maxScore가 0 이하면 (예: Yatzy, LS 등이 0점)
+            if (maxScore <= 0) {
+                // 상단 항목(Aces~Sixes)이 비어있으면 0점이라도 기록 (보너스 포기)
+                const upperIds = ['aces', 'twos', 'threes', 'fours', 'fives', 'sixes'];
+                for (const id of upperIds) {
                     if (scores[id] === null) {
-                         // 상단 항목이 0점이면 낮은 숫자부터 채우기 (보너스 포기)
-                        if (SCORE_CATEGORIES.upper[id]) {
-                            return { id: id, score: potential[id] };
-                        }
+                        return { id: id, score: potential[id] };
                     }
                 }
-                 // 하단 항목이 0점이면 어쩔 수 없이 채우기 (Yatzy, LS 등)
-                for (const id in scores) {
-                     if (scores[id] === null && SCORE_CATEGORIES.lower[id]) {
+                 // 상단이 다 찼으면, 하단 항목(Yatzy, LS 등)에 0점 기록
+                const lowerIds = ['yatzy', 'largeStraight', 'smallStraight', 'fullHouse', 'fourOfAKind', 'threeOfAKind', 'chance'];
+                for (const id of lowerIds) {
+                     if (scores[id] === null) {
                          return { id: id, score: potential[id] };
                      }
                 }
@@ -801,6 +851,7 @@
             
             return { id: bestId, score: maxScore };
         }
+        // --- END AI LOGIC ---
 
         findMatchBtn.addEventListener('click', findMatch);
         startAiBtn.addEventListener('click', startAiGame);
