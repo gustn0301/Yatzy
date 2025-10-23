@@ -47,13 +47,66 @@
                 <h1 class="text-4xl font-bold text-center text-gray-800">Yatzy Online</h1>
                 <button id="show-rules-btn-setup" class="absolute right-0 top-0 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">게임 방법</button>
             </div>
-            <p class="text-center text-xl text-gray-600 mt-4 mb-8">다른 플레이어와 1v1 대전을 즐겨보세요!</p>
-            <div id="matchmaking-status" class="text-center my-4"></div>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <button id="find-match-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">랜덤 매칭 찾기</button>
-                <button id="start-ai-btn" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">AI와 대전하기</button>
-                <button id="cancel-match-btn" class="hidden bg-gray-500 hover:bg-gray-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md">매칭 취소</button>
+
+            <!-- Main Menu -->
+            <div id="main-menu">
+                <p class="text-center text-xl text-gray-600 mt-4 mb-8">다른 플레이어와 1v1 대전을 즐겨보세요!</p>
+                <div id="matchmaking-status" class="text-center my-4 h-6"></div> <!-- 상태 메시지 영역 -->
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="find-match-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">랜덤 매칭 찾기</button>
+                    <button id="friend-match-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">친구와 대전하기</button>
+                    <button id="start-ai-btn" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">AI와 대전하기</button>
+                    <button id="cancel-match-btn" class="hidden bg-gray-500 hover:bg-gray-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md">매칭 취소</button>
+                </div>
             </div>
+
+            <!-- Friend Menu -->
+            <div id="friend-menu" class="hidden">
+                <p class="text-center text-xl text-gray-600 mt-4 mb-8">친구와 함께 플레이하세요.</p>
+                <div id="friend-menu-status" class="text-center my-4 min-h-[2rem]"></div> <!-- 친구 메뉴 상태 -->
+                
+                <div id="friend-menu-buttons" class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="create-room-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md">방 만들기</button>
+                </div>
+    
+                <div id="join-room-section" class="mt-8 border-t pt-6 text-center">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">방에 참가하기</h3>
+                    <div class="flex justify-center items-center gap-2 max-w-sm mx-auto">
+                        <input id="room-code-input" type="text" maxlength="6" placeholder="6자리 코드 입력" class="text-lg p-3 border rounded-lg w-full text-center tracking-widest font-mono">
+                        <button id="join-room-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-lg">참가</button>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-6">
+                    <button id="back-to-main-menu-btn" class="text-gray-600 hover:text-gray-800">&larr; 뒤로가기</button>
+                </div>
+            </div>
+            
+            <!-- Lobby Screen (New) -->
+            <div id="lobby-screen" class="hidden">
+                <p class="text-center text-xl text-gray-600 mt-4 mb-2">친구 대기실</p>
+                <div class="text-center my-4">
+                    <span class="text-gray-700 text-lg">방 코드:</span>
+                    <span id="lobby-room-code" class="block text-4xl font-bold text-blue-600 my-2 tracking-widest">...</span>
+                    <span id="lobby-copy-code" class="text-blue-500 hover:text-blue-700 cursor-pointer text-sm">[코드 복사]</span>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-700 mb-4 text-center">플레이어</h3>
+                <div id="lobby-player-list" class="space-y-2 max-w-sm mx-auto min-h-[6rem]">
+                    <!-- 플레이어 목록이 여기에 동적으로 추가됩니다 -->
+                </div>
+                
+                <div id="lobby-status" class="text-center text-gray-600 my-4 h-6"></div> <!-- 로비 상태 메시지 -->
+                
+                <div id="lobby-host-controls" class="hidden text-center mt-6 space-x-4">
+                    <button id="start-game-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 text-xl rounded-lg shadow-md disabled:opacity-50" disabled>게임 시작 (2/2)</button>
+                    <button id="cancel-room-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 text-xl rounded-lg shadow-md">방 해산</button>
+                </div>
+                <div id="lobby-guest-controls" class="hidden text-center mt-6">
+                    <button id="leave-lobby-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 text-xl rounded-lg shadow-md">로비로 나가기</button>
+                </div>
+            </div>
+
              <div class="text-center mt-4 text-xs text-gray-500">
                 <p>내 플레이어 ID: <span id="player-id"></span></p>
             </div>
@@ -195,10 +248,36 @@
         // --- DOM Elements ---
         const setupScreen = document.getElementById('setup-screen');
         const gameScreen = document.getElementById('game-screen');
+        const mainMenu = document.getElementById('main-menu');
+        const friendMenu = document.getElementById('friend-menu');
+        const lobbyScreen = document.getElementById('lobby-screen');
+        
         const findMatchBtn = document.getElementById('find-match-btn');
+        const friendMatchBtn = document.getElementById('friend-match-btn');
         const startAiBtn = document.getElementById('start-ai-btn');
         const cancelMatchBtn = document.getElementById('cancel-match-btn');
         const matchmakingStatus = document.getElementById('matchmaking-status');
+        
+        // Friend Menu
+        const friendMenuStatus = document.getElementById('friend-menu-status');
+        const createRoomBtn = document.getElementById('create-room-btn');
+        const joinRoomSection = document.getElementById('join-room-section');
+        const roomCodeInput = document.getElementById('room-code-input');
+        const joinRoomBtn = document.getElementById('join-room-btn');
+        const backToMainMenuBtn = document.getElementById('back-to-main-menu-btn');
+
+        // Lobby (New)
+        const lobbyRoomCode = document.getElementById('lobby-room-code');
+        const lobbyCopyCode = document.getElementById('lobby-copy-code');
+        const lobbyPlayerList = document.getElementById('lobby-player-list');
+        const lobbyStatus = document.getElementById('lobby-status');
+        const lobbyHostControls = document.getElementById('lobby-host-controls');
+        const lobbyGuestControls = document.getElementById('lobby-guest-controls');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const cancelRoomBtn = document.getElementById('cancel-room-btn');
+        const leaveLobbyBtn = document.getElementById('leave-lobby-btn');
+
+
         const diceContainer = document.getElementById('dice-container');
         const rollButton = document.getElementById('roll-button');
         const leaderboard = document.getElementById('leaderboard');
@@ -216,8 +295,8 @@
 
         // --- Game State ---
         let state = {};
-        let userId, myPlayerIndex, gameId;
-        let gameMode = null; // 'online' or 'ai'
+        let userId, myPlayerIndex, gameId, hostId;
+        let gameMode = null; // 'online-random', 'online-private', or 'ai'
         let gameUnsubscribe = null, waitingUnsubscribe = null;
         let aiTurnTimeout = null; // AI 턴 *시작* 타이머 (잠금 역할)
         let scoreMessageTimeout = null; // 점수 메시지 타이머
@@ -234,9 +313,11 @@
                 playerIdEl.textContent = userId.substring(0, 8);
                 findMatchBtn.disabled = false;
                 startAiBtn.disabled = false;
+                friendMatchBtn.disabled = false;
             } else {
                 findMatchBtn.disabled = true;
                 startAiBtn.disabled = true;
+                friendMatchBtn.disabled = true;
             }
         });
         await signInAnonymously(auth);
@@ -251,26 +332,41 @@
             gameScreen.classList.add('hidden');
             setupScreen.classList.remove('hidden');
             gameOverModal.classList.add('hidden');
-            gameRulesModal.classList.add('hidden'); // Ensure rules modal is hidden
+            gameRulesModal.classList.add('hidden');
             
-            findMatchBtn.disabled = false;
-            startAiBtn.disabled = false;
+            mainMenu.classList.remove('hidden');
+            friendMenu.classList.add('hidden');
+            lobbyScreen.classList.add('hidden');
+            
             findMatchBtn.classList.remove('hidden');
+            friendMatchBtn.classList.remove('hidden');
             startAiBtn.classList.remove('hidden');
-            findMatchBtn.textContent = '랜덤 매칭 찾기';
-            
             cancelMatchBtn.classList.add('hidden');
+            cancelMatchBtn.textContent = '매칭 취소';
 
             matchmakingStatus.textContent = '';
+            friendMenuStatus.textContent = '';
             state = {};
             gameId = null;
+            hostId = null;
             myPlayerIndex = null;
             gameMode = null;
         }
+        
+        function showFriendMenu() {
+            mainMenu.classList.add('hidden');
+            friendMenu.classList.remove('hidden');
+            
+            friendMenuStatus.textContent = '';
+            roomCodeInput.value = '';
+            roomCodeInput.disabled = false;
+            joinRoomBtn.disabled = false;
+        }
 
         async function findMatch() {
-            gameMode = 'online';
+            gameMode = 'online-random';
             findMatchBtn.classList.add('hidden');
+            friendMatchBtn.classList.add('hidden');
             startAiBtn.classList.add('hidden');
             cancelMatchBtn.classList.remove('hidden');
             matchmakingStatus.textContent = '상대를 찾고 있습니다...';
@@ -281,34 +377,19 @@
 
             if (!querySnapshot.empty) {
                 const opponentDoc = querySnapshot.docs[0];
-                const opponentId = opponentDoc.id; // 매칭을 먼저 시작해서 기다리고 있던 상대방(Player 1)
-
+                const opponentId = opponentDoc.id; 
                 const newGameRef = doc(collection(db, "games"));
                 gameId = newGameRef.id;
 
-                const scoreSheet = () => {
-                    const sheet = {};
-                    Object.keys({...SCORE_CATEGORIES.upper, ...SCORE_CATEGORIES.lower}).forEach(id => { sheet[id] = null; });
-                    return sheet;
-                };
-
-                const initialGameState = {
-                    // 매칭을 먼저 시작한 사람(opponentId)이 Player 1 (index 0)이 됩니다.
-                    players: [opponentId, userId],
-                    playerNames: { [opponentId]: 'Player 1', [userId]: 'Player 2' },
-                    dice: [1, 2, 3, 4, 5], kept: [false, false, false, false, false],
-                    rollsLeft: 3, round: 1, currentPlayer: 0, // 게임은 Player 1부터 시작합니다.
-                    scores: [scoreSheet(), scoreSheet()],
-                    isTurnStarted: false, status: 'active', createdAt: serverTimestamp(),
-                    message: `Player 1의 턴입니다.`
-                };
+                const initialGameState = createInitialState(opponentId, userId);
+                hostId = opponentId; // The one waiting is the host
 
                 try {
                     await runTransaction(db, async (transaction) => {
                         transaction.delete(doc(db, "waitingRoom", opponentId));
                         transaction.set(newGameRef, initialGameState);
                     });
-                    joinGame(gameId);
+                    subscribeToGame(gameId);
                 } catch (e) {
                     console.error("Transaction failed: ", e);
                     init();
@@ -326,13 +407,13 @@
             }
         }
         
-        async function cancelMatch() {
+        async function cancelMatch() { // For random matching
             if (waitingUnsubscribe) {
                 waitingUnsubscribe();
                 waitingUnsubscribe = null;
             }
             try {
-                if (gameMode === 'online') {
+                if (gameMode === 'online-random') {
                     const myWaitingRef = doc(db, "waitingRoom", userId);
                     await deleteDoc(myWaitingRef);
                 }
@@ -340,6 +421,197 @@
                 console.error("Error removing document from waiting room:", error);
             }
             init();
+        }
+
+        // --- Friend Room Logic ---
+        async function createRoom() {
+            gameMode = 'online-private';
+            const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
+            gameId = roomCode;
+            hostId = userId; // I am the host
+            
+            friendMenu.classList.add('hidden');
+            lobbyScreen.classList.remove('hidden');
+            lobbyStatus.innerHTML = `방을 만드는 중...`;
+            
+            const gameDocRef = doc(db, "games", roomCode);
+            
+            try {
+                const docSnap = await getDoc(gameDocRef);
+                if (docSnap.exists()) {
+                    friendMenu.classList.remove('hidden');
+                    lobbyScreen.classList.add('hidden');
+                    friendMenuStatus.textContent = '오류: 방 생성 실패. 다시 시도하세요.';
+                    return;
+                }
+                
+                // Create a 'lobby' game state
+                const scoreSheet = () => {
+                    const sheet = {};
+                    Object.keys({...SCORE_CATEGORIES.upper, ...SCORE_CATEGORIES.lower}).forEach(id => { sheet[id] = null; });
+                    return sheet;
+                };
+                const initialGameState = {
+                    players: [userId], // Host is Player 1
+                    playerNames: { [userId]: 'Player 1' },
+                    hostId: userId,
+                    dice: [1, 2, 3, 4, 5], kept: [false, false, false, false, false],
+                    rollsLeft: 3, round: 1, currentPlayer: 0,
+                    scores: [scoreSheet(), scoreSheet()],
+                    isTurnStarted: false, 
+                    status: 'lobby', // Host waits in lobby
+                    createdAt: serverTimestamp(),
+                    message: `친구를 기다리는 중...`
+                };
+                
+                await setDoc(gameDocRef, initialGameState);
+                
+                subscribeToGame(roomCode); // Host starts listening
+                
+            } catch (e) {
+                console.error("Error creating room: ", e);
+                friendMenu.classList.remove('hidden');
+                lobbyScreen.classList.add('hidden');
+                friendMenuStatus.textContent = `오류: ${e.message}`;
+                showFriendMenu();
+            }
+        }
+        
+        async function joinRoomWithCode() {
+            gameMode = 'online-private';
+            const roomCode = roomCodeInput.value.trim();
+            if (roomCode.length !== 6 || !/^\d{6}$/.test(roomCode)) {
+                friendMenuStatus.textContent = '6자리 숫자로 된 코드를 입력하세요.';
+                return;
+            }
+            
+            joinRoomBtn.disabled = true;
+            roomCodeInput.disabled = true;
+            friendMenuStatus.textContent = `"${roomCode}" 방에 참가하는 중...`;
+            
+            const gameDocRef = doc(db, "games", roomCode);
+            gameId = roomCode;
+            
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const gameDoc = await transaction.get(gameDocRef);
+                    if (!gameDoc.exists()) {
+                        throw new Error("방을 찾을 수 없습니다.");
+                    }
+                    
+                    const gameData = gameDoc.data();
+                    hostId = gameData.hostId;
+                    
+                    if (gameData.status !== 'lobby') {
+                        throw new Error("방이 꽉 찼거나 이미 시작되었습니다.");
+                    }
+                    if (gameData.players.length >= 2) {
+                        throw new Error("방이 꽉 찼습니다.");
+                    }
+                    if (gameData.players.includes(userId)) {
+                        console.warn("Player already in room.");
+                    } else {
+                        // Join as Player 2
+                        transaction.update(gameDocRef, {
+                            players: [...gameData.players, userId],
+                            playerNames: { ...gameData.playerNames, [userId]: 'Player 2' },
+                            message: `Player 2 (${userId.substring(0, 4)}...)님이 입장했습니다.`
+                        });
+                    }
+                });
+                
+                // Transaction successful, subscribe to the game
+                friendMenu.classList.add('hidden');
+                lobbyScreen.classList.remove('hidden');
+                subscribeToGame(roomCode); 
+                
+            } catch (e) {
+                console.error("Join room failed: ", e);
+                friendMenuStatus.textContent = `참가 실패: ${e.message}`;
+                joinRoomBtn.disabled = false;
+                roomCodeInput.disabled = false;
+            }
+        }
+        
+        async function cancelRoom() { // For private room host
+            if (gameId) {
+                if (gameUnsubscribe) { gameUnsubscribe(); gameUnsubscribe = null; }
+                try {
+                    // Delete the room
+                    await deleteDoc(doc(db, "games", gameId)); 
+                } catch (error) { 
+                    console.error("Error deleting room:", error);
+                }
+            }
+            init(); // Go back to main menu
+        }
+
+        async function leaveLobby() { // For private room guest
+            if (gameId) {
+                if (gameUnsubscribe) { gameUnsubscribe(); gameUnsubscribe = null; }
+                try {
+                    // Just remove myself from the player list
+                    await runTransaction(db, async (transaction) => {
+                        const gameDoc = await transaction.get(doc(db, "games", gameId));
+                        if (!gameDoc.exists()) return;
+                        const gameData = gameDoc.data();
+                        const newPlayers = gameData.players.filter(p => p !== userId);
+                        const newPlayerNames = { ...gameData.playerNames };
+                        delete newPlayerNames[userId];
+                        transaction.update(doc(db, "games", gameId), {
+                            players: newPlayers,
+                            playerNames: newPlayerNames,
+                            message: `Player ${myPlayerIndex + 1}님이 나갔습니다.`
+                        });
+                    });
+                } catch (error) {
+                    console.error("Error leaving lobby:", error);
+                }
+            }
+            init(); // Go back to main menu
+        }
+
+        async function kickPlayer(guestId) {
+            if (userId !== hostId || !gameId) return; // Only host can kick
+            
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const gameDoc = await transaction.get(doc(db, "games", gameId));
+                    if (!gameDoc.exists()) return;
+                    const gameData = gameDoc.data();
+                    
+                    const guestPlayerIndex = gameData.players.indexOf(guestId);
+                    if (guestPlayerIndex === -1) return; // Player already left
+
+                    const newPlayers = gameData.players.filter(p => p !== guestId);
+                    const newPlayerNames = { ...gameData.playerNames };
+                    delete newPlayerNames[guestId];
+                    
+                    transaction.update(doc(db, "games", gameId), {
+                        players: newPlayers,
+                        playerNames: newPlayerNames,
+                        message: `Player ${guestPlayerIndex + 1}님을 추방했습니다.`
+                    });
+                });
+            } catch (error) {
+                console.error("Error kicking player:", error);
+                lobbyStatus.textContent = "추방 실패: " + error.message;
+            }
+        }
+        
+        async function startGame() {
+            if (userId !== hostId || !gameId) return; // Only host can start
+            
+            try {
+                await updateDoc(doc(db, "games", gameId), {
+                    status: 'active',
+                    message: 'Player 1의 턴입니다.'
+                });
+                // The onSnapshot listener will handle moving to the game-screen
+            } catch (error) {
+                console.error("Error starting game:", error);
+                lobbyStatus.textContent = "게임 시작 실패: " + error.message;
+            }
         }
 
         // --- AI Game Logic ---
@@ -356,6 +628,7 @@
             state = {
                 players: [userId, 'AI'],
                 playerNames: { [userId]: 'Player 1', 'AI': 'AI' },
+                hostId: userId,
                 dice: [1, 2, 3, 4, 5], kept: [false, false, false, false, false],
                 rollsLeft: 3, round: 1, currentPlayer: 0, // Player 1 (human) starts
                 scores: [scoreSheet(), scoreSheet()],
@@ -365,77 +638,177 @@
             
             setupScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
-            updateUI();
+            updateGameUI();
         }
 
         /**
          * AI 모드에서 로컬 게임 상태를 업데이트합니다.
-         * 중요: 이 함수는 더 이상 AI 턴을 트리거하지 않습니다.
          */
         function updateGameState(newState) {
             state = { ...state, ...newState };
-            updateUI();
+            updateGameUI();
             
             if (state.status === 'finished') {
                 endGame(true);
             }
-            // *** AI 턴 트리거 로직을 여기서 제거했습니다. ***
         }
+        
+        // --- Common Game Functions ---
 
-        async function findGameAndJoin() {
+        function createInitialState(player1Id, player2Id) {
+             const scoreSheet = () => {
+                const sheet = {};
+                Object.keys({...SCORE_CATEGORIES.upper, ...SCORE_CATEGORIES.lower}).forEach(id => { sheet[id] = null; });
+                return sheet;
+            };
+            return {
+                players: [player1Id, player2Id],
+                playerNames: { [player1Id]: 'Player 1', [player2Id]: 'Player 2' },
+                hostId: player1Id, // The one waiting is host
+                dice: [1, 2, 3, 4, 5], kept: [false, false, false, false, false],
+                rollsLeft: 3, round: 1, currentPlayer: 0, 
+                scores: [scoreSheet(), scoreSheet()],
+                isTurnStarted: false, status: 'active', createdAt: serverTimestamp(),
+                message: `Player 1의 턴입니다.`
+            };
+        }
+        
+        async function findGameAndJoin() { // For random matchers
             if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
             const gamesRef = collection(db, "games");
+            // Find a game I was just added to (as player 2)
             const q = query(gamesRef, where("players", "array-contains", userId), where("status", "==", "active"));
             const snapshot = await getDocs(q);
             if(!snapshot.empty) {
-                const gameDoc = snapshot.docs[0];
-                joinGame(gameDoc.id);
+                const gameDoc = snapshot.docs.find(d => d.data().players[1] === userId);
+                if (gameDoc) {
+                    subscribeToGame(gameDoc.id);
+                }
             }
         }
 
-        function joinGame(newGameId) {
+        function subscribeToGame(newGameId) {
             if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
             gameId = newGameId;
-            setupScreen.classList.add('hidden');
-            gameScreen.classList.remove('hidden');
-
+            hostId = state.hostId; // Set hostId from state if joining
+            
             if(gameUnsubscribe) { gameUnsubscribe(); gameUnsubscribe = null; }
+            
             gameUnsubscribe = onSnapshot(doc(db, "games", gameId), (doc) => {
                 if (doc.exists()) {
+                    const oldStatus = state.status;
                     state = doc.data();
                     myPlayerIndex = state.players.indexOf(userId);
+                    hostId = state.hostId; // Keep hostId updated
+                    
+                    // Kicked or Left
+                    if (myPlayerIndex === -1 && (state.status === 'lobby' || state.status === 'active')) {
+                        alert("방에서 추방되었거나 호스트가 방을 나갔습니다.");
+                        init();
+                        return;
+                    }
+
                     if(state.status === 'finished') {
-                        endGame(true); // Don't update doc if already finished
-                    } else {
-                        updateUI();
+                        lobbyScreen.classList.add('hidden'); // Hide lobby if game finishes
+                        endGame(true);
+                    } else if (state.status === 'lobby') {
+                        setupScreen.classList.remove('hidden');
+                        friendMenu.classList.add('hidden');
+                        lobbyScreen.classList.remove('hidden');
+                        gameScreen.classList.add('hidden');
+                        updateLobbyUI();
+                    } else if (state.status === 'active') {
+                        setupScreen.classList.add('hidden');
+                        lobbyScreen.classList.add('hidden');
+                        gameScreen.classList.remove('hidden');
+                        updateGameUI();
                     }
                 } else {
-                    alert("상대가 게임을 떠났거나 게임이 종료되었습니다. 로비로 돌아갑니다.");
+                    // Game doc was deleted (host canceled, or opponent left)
+                    if (gameMode === 'online-private') {
+                        alert("호스트가 방을 취소했습니다. 로비로 돌아갑니다.");
+                    } else if (gameMode === 'online-random') {
+                        alert("상대가 게임을 떠났거나 게임이 종료되었습니다. 로비로 돌아갑니다.");
+                    }
                     init();
                 }
             });
         }
-
-        function updateUI() {
+        
+        function updateLobbyUI() {
             if (!state || !state.players) return;
+            
+            lobbyRoomCode.textContent = gameId;
+            lobbyPlayerList.innerHTML = '';
+            
+            state.players.forEach((pId, i) => {
+                let playerName = `Player ${i + 1}`;
+                let isHost = (pId === state.hostId);
+                let isMe = (pId === userId);
+                
+                let playerHTML = `
+                    <div class="flex justify-between items-center p-3 bg-gray-100 rounded-lg">
+                        <span class="font-bold text-lg">${playerName} ${isHost ? '(Host)' : ''} ${isMe ? '(나)' : ''}</span>
+                        ${(userId === hostId && !isMe) ? 
+                            `<button data-kick-id="${pId}" class="kick-btn bg-red-500 hover:bg-red-600 text-white text-sm font-bold py-1 px-3 rounded">추방</button>` : 
+                            ''}
+                    </div>
+                `;
+                lobbyPlayerList.innerHTML += playerHTML;
+            });
+            
+            if (userId === hostId) {
+                // Host View
+                lobbyHostControls.classList.remove('hidden');
+                lobbyGuestControls.classList.add('hidden');
+                
+                if (state.players.length === 2) {
+                    startGameBtn.disabled = false;
+                    lobbyStatus.textContent = "플레이어가 모두 모였습니다. 게임을 시작하세요!";
+                } else {
+                    startGameBtn.disabled = true;
+                    lobbyStatus.textContent = "친구가 입장하기를 기다리는 중...";
+                }
+            } else {
+                // Guest View
+                lobbyHostControls.classList.add('hidden');
+                lobbyGuestControls.classList.remove('hidden');
+                lobbyStatus.textContent = "호스트가 게임을 시작하기를 기다리는 중...";
+            }
+        }
+
+        function updateGameUI() {
+            if (!state || !state.players) return;
+            
+            // If I'm a guest who just joined, myPlayerIndex might be -1 on first render
+            if (myPlayerIndex === -1) myPlayerIndex = state.players.indexOf(userId);
+            if (myPlayerIndex === -1) return; // Still not in players list, wait for next snapshot
             
             document.getElementById('dice-container').innerHTML = state.dice.map((val, i) => getDieHTML(val, i, state.kept[i])).join('');
             
             const isMyTurn = state.currentPlayer === myPlayerIndex;
             document.getElementById('rolls-left').textContent = state.rollsLeft;
             
-            let turnName = isMyTurn ? '내 턴' : (gameMode === 'online' ? '상대 턴' : 'AI 턴');
+            let turnName = "대기 중...";
+            if (state.status === 'active') {
+                 turnName = isMyTurn ? '내 턴' : (gameMode.startsWith('online') ? '상대 턴' : 'AI 턴');
+            }
+            
             document.getElementById('turn-indicator').textContent = `라운드 ${state.round}/13 • ${turnName}`;
 
-            let titlePlayerName = isMyTurn ? '내' : (gameMode === 'online' ? '상대' : 'AI');
-            document.getElementById('scoreboard-title').textContent = `${titlePlayerName} 점수판 (Player ${state.currentPlayer + 1})`;
+            let titlePlayerName = '점수판';
+            if (state.status === 'active') {
+                titlePlayerName = isMyTurn ? '내' : (gameMode.startsWith('online') ? '상대' : 'AI');
+                titlePlayerName += ` 점수판 (Player ${state.currentPlayer + 1})`;
+            }
+            document.getElementById('scoreboard-title').textContent = titlePlayerName;
             
             // 점수 기록 메시지가 아닐 때만 일반 메시지 표시
             if (!scoreMessageTimeout) {
                 document.getElementById('message-area').textContent = state.message || '';
             }
 
-            rollButton.disabled = !isMyTurn || state.rollsLeft === 0 || (state.isTurnStarted === false && state.rollsLeft < 3);
+            rollButton.disabled = !isMyTurn || state.rollsLeft === 0 || state.status !== 'active' || (state.isTurnStarted === false && state.rollsLeft < 3);
             rollButton.classList.toggle('opacity-50', rollButton.disabled);
 
             updateScoresheet();
@@ -443,7 +816,9 @@
         }
 
         function updateScoresheet() {
-            const displayPlayerIndex = state.currentPlayer;
+            const displayPlayerIndex = (state.status === 'lobby') ? 0 : state.currentPlayer;
+            if (!state.scores || !state.scores[displayPlayerIndex]) return; // Guard clause
+            
             const playerScores = state.scores[displayPlayerIndex];
             const potential = state.isTurnStarted ? calculateScores(state.dice) : {};
 
@@ -460,7 +835,7 @@
                     scoreCell.textContent = (state.isTurnStarted && state.currentPlayer === myPlayerIndex) ? potential[id] : '';
                     scoreCell.classList.toggle('potential-score', state.isTurnStarted && state.currentPlayer === myPlayerIndex);
                     row.classList.remove('scored', 'opacity-70');
-                    row.classList.toggle('clickable', state.isTurnStarted && state.currentPlayer === myPlayerIndex);
+                    row.classList.toggle('clickable', state.isTurnStarted && state.currentPlayer === myPlayerIndex && state.status === 'active');
                 }
                  if (SCORE_CATEGORIES.upper[id] && playerScores[id] !== null) {
                     upperSubtotal += playerScores[id];
@@ -475,8 +850,9 @@
         }
         
         function updateLeaderboard() {
+            if (!state.players) return;
             leaderboard.innerHTML = state.players.map((pId, i) => {
-                const name = (i === myPlayerIndex) ? '나' : (gameMode === 'online' ? '상대' : 'AI');
+                const name = (i === myPlayerIndex) ? '나' : (gameMode.startsWith('online') ? '상대' : 'AI');
                 return `
                 <div class="leaderboard-item flex justify-between items-center p-2 rounded ${i === state.currentPlayer ? 'current-player' : ''}">
                     <span class="font-bold text-lg">${name} (P${i+1})</span>
@@ -486,7 +862,7 @@
         }
         
         async function rollDice() {
-            if (state.currentPlayer !== myPlayerIndex || state.rollsLeft <= 0) return;
+            if (state.currentPlayer !== myPlayerIndex || state.rollsLeft <= 0 || state.status !== 'active') return;
             const newDice = state.dice.map((d, i) => state.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
             
             const newState = {
@@ -496,7 +872,7 @@
                 message: state.rollsLeft - 1 > 0 ? "유지할 주사위를 선택하세요." : "점수를 기록할 항목을 선택하세요."
             };
             
-            if (gameMode === 'online') {
+            if (gameMode.startsWith('online')) {
                 await updateDoc(doc(db, "games", gameId), newState);
             } else {
                 updateGameState(newState);
@@ -504,11 +880,11 @@
         }
 
         async function toggleKeep(index) {
-            if (state.currentPlayer !== myPlayerIndex || !state.isTurnStarted || state.rollsLeft === 3) return;
+            if (state.currentPlayer !== myPlayerIndex || !state.isTurnStarted || state.rollsLeft === 3 || state.status !== 'active') return;
             const newKept = [...state.kept];
             newKept[index] = !newKept[index];
             
-            if (gameMode === 'online') {
+            if (gameMode.startsWith('online')) {
                 await updateDoc(doc(db, "games", gameId), { kept: newKept });
             } else {
                 updateGameState({ kept: newKept });
@@ -517,7 +893,7 @@
 
         async function selectScore(e) {
             const row = e.target.closest('.score-row');
-            if (!row || state.currentPlayer !== myPlayerIndex || !state.isTurnStarted || row.classList.contains('scored')) return;
+            if (!row || state.currentPlayer !== myPlayerIndex || !state.isTurnStarted || row.classList.contains('scored') || state.status !== 'active') return;
             
             if (scoreMessageTimeout) clearTimeout(scoreMessageTimeout);
             
@@ -529,7 +905,6 @@
             await scoreAndEndHumanTurn(id, scoredValue);
         }
         
-        // AI 턴 종료와 로직이 동일하여 player 턴도 함수로 분리
         async function scoreAndEndHumanTurn(id, score) {
             const newScores = [...state.scores];
             newScores[myPlayerIndex][id] = score;
@@ -556,7 +931,7 @@
             // 메시지 영역에 점수 메시지 즉시 표시
             document.getElementById('message-area').textContent = scoreMessage;
 
-            if (gameMode === 'online') {
+            if (gameMode.startsWith('online')) {
                 await updateDoc(doc(db, "games", gameId), scoreUpdateState);
             } else {
                 updateGameState(scoreUpdateState);
@@ -579,7 +954,7 @@
                         isTurnStarted: false,
                         message: `Player ${nextPlayer + 1}의 턴입니다.`
                     };
-                    if (gameMode === 'online') {
+                    if (gameMode.startsWith('online')) {
                         await updateDoc(doc(db, "games", gameId), nextTurnState);
                     } else {
                         updateGameState(nextTurnState);
@@ -597,23 +972,32 @@
         async function endGame(isFinishedByOpponent = false) {
             if (aiTurnTimeout) { clearTimeout(aiTurnTimeout); aiTurnTimeout = null; }
             if (scoreMessageTimeout) { clearTimeout(scoreMessageTimeout); scoreMessageTimeout = null; }
+            
+            // Ensure state.players is valid before mapping
+            if (!state.players || state.players.length === 0) {
+                 console.warn("EndGame called with no players in state.");
+                 init(); // Go to init if state is corrupt
+                 return;
+            }
 
             const finalTotals = state.players.map((pId, i) => ({ 
                 player: i + 1, 
-                name: (i === myPlayerIndex) ? '나' : (gameMode === 'online' ? '상대' : 'AI'), 
+                name: (i === myPlayerIndex) ? '나' : (gameMode.startsWith('online') ? '상대' : 'AI'), 
                 score: getPlayerTotal(i) 
             })).sort((a, b) => b.score - a.score);
             
             document.getElementById('final-leaderboard').innerHTML = finalTotals.map(p => `<p>${p.name} (Player ${p.player}): <span class="font-bold text-xl">${p.score}</span>점</p>`).join('');
 
             const winnerMessageEl = document.getElementById('winner-message');
-            if (finalTotals[0].score === finalTotals[1]?.score) {
+            if (finalTotals.length > 1 && finalTotals[0].score === finalTotals[1]?.score) {
                 winnerMessageEl.textContent = '무승부입니다!';
-            } else {
+            } else if (finalTotals.length > 0) {
                 winnerMessageEl.textContent = `${finalTotals[0].name} (Player ${finalTotals[0].player})의 승리입니다!`;
+            } else {
+                 winnerMessageEl.textContent = '게임이 종료되었습니다.';
             }
             
-            if(gameMode === 'online' && !isFinishedByOpponent) {
+            if(gameMode.startsWith('online') && !isFinishedByOpponent) {
                 await updateDoc(doc(db, "games", gameId), { status: 'finished' });
             } else if (gameMode === 'ai' && state.status !== 'finished') { // AI 모드일 때도 state 업데이트
                 updateGameState({ status: 'finished' });
@@ -652,94 +1036,62 @@
         }
         
         // --- AI LOGIC ---
-
-        /**
-         * AI의 턴을 비동기적으로 실행합니다.
-         */
         async function runAITurn() {
-            // 턴 시작 시, aiTurnTimeout 잠금을 해제하여 다음 턴이 예약될 수 있도록 함
+            // ... (AI 로직은 이전과 동일하게 유지) ...
+            
             if (aiTurnTimeout) { clearTimeout(aiTurnTimeout); aiTurnTimeout = null; }
             if (scoreMessageTimeout) { clearTimeout(scoreMessageTimeout); scoreMessageTimeout = null; }
-
             const aiPlayerScores = state.scores[1];
-
-            // AI 1st Roll
             if (state.rollsLeft === 3) {
                 const newDice = state.dice.map(() => Math.floor(Math.random() * 6) + 1);
                 updateGameState({ dice: newDice, kept: [false,false,false,false,false], rollsLeft: 2, isTurnStarted: true, message: "AI가 주사위를 굴립니다..." });
             }
-
-            // 1차 롤 직후: 야찌, 라지 스트레이트 등 즉시 획득
             let potential = calculateScores(state.dice);
             let earlyScore = checkEarlyScore(potential, aiPlayerScores);
             if (earlyScore) {
                 return await scoreAndEndAITurn(earlyScore.id, earlyScore.score);
             }
-
-            // AI 2nd Roll Logic
             await new Promise(resolve => setTimeout(resolve, 1500));
-            if(state.status === 'finished') return; // 딜레이 중에 게임이 끝날 수 있음
-            
+            if(state.status === 'finished') return; 
             let bestKeep = aiDecideKeep(state.dice, aiPlayerScores);
             let newDice = state.dice.map((d, i) => bestKeep.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
             updateGameState({ dice: newDice, kept: bestKeep.kept, rollsLeft: 1, message: `AI가 ${bestKeep.reason} (을)를 위해 주사위를 굴립니다...` });
-            
-            // 2차 롤 직후: 야찌, 라지 스트레이트 등 즉시 획득
             potential = calculateScores(state.dice);
             earlyScore = checkEarlyScore(potential, aiPlayerScores);
             if (earlyScore) {
                 return await scoreAndEndAITurn(earlyScore.id, earlyScore.score);
             }
-
-            // AI 3rd Roll Logic
             await new Promise(resolve => setTimeout(resolve, 1500));
             if(state.status === 'finished') return; 
-            
             bestKeep = aiDecideKeep(state.dice, aiPlayerScores);
             newDice = state.dice.map((d, i) => bestKeep.kept[i] ? d : Math.floor(Math.random() * 6) + 1);
             updateGameState({ dice: newDice, kept: bestKeep.kept, rollsLeft: 0, message: `AI가 ${bestKeep.reason} (을)를 위해 마지막으로 굴립니다...` });
-
-            // AI Final Score Selection
             await new Promise(resolve => setTimeout(resolve, 1500));
             if(state.status === 'finished') return;
-
             potential = calculateScores(state.dice);
             const bestChoice = aiBestChoice(aiPlayerScores, potential);
             return await scoreAndEndAITurn(bestChoice.id, bestChoice.score);
         }
-
-        /**
-         * AI 턴 종료 및 점수 기록 공통 함수
-         */
         async function scoreAndEndAITurn(id, score) {
             const newScores = [...state.scores];
             newScores[1][id] = score; // AI는 player 1
             const scoreName = SCORE_CATEGORIES.upper[id] || SCORE_CATEGORIES.lower[id];
             const scoreMessage = `AI (Player 2)가 ${scoreName}에 ${score}점을 기록했습니다.`;
-
             let nextPlayer = 0; // 0 (Human)
-            let nextRound = state.round; // 아직 턴이 안 끝남
-            
-            // AI는 2P이므로, AI 턴이 끝나면 round가 증가
+            let nextRound = state.round; 
             if (state.currentPlayer === 1) {
                 nextRound = state.round + 1;
             }
-            
-            // 1. Update state with AI's score and message FIRST
             updateGameState({
                 scores: newScores,
                 message: scoreMessage,
                 isTurnStarted: false,
                 rollsLeft: 0
             });
-            // 메시지 영역에 점수 메시지 즉시 표시
             document.getElementById('message-area').textContent = scoreMessage;
-
-            // 2. Wait, then change turn
             scoreMessageTimeout = setTimeout(async () => {
-                scoreMessageTimeout = null; // 타이머 클리어
+                scoreMessageTimeout = null; 
                 if(state.status === 'finished') return;
-                
                 if (nextRound > 13) {
                     await endGame();
                 } else {
@@ -752,95 +1104,65 @@
                         message: `Player ${nextPlayer + 1} (당신)의 턴입니다.`
                     });
                 }
-            }, 1500); // 1.5초 후 턴 넘김
+            }, 1500);
         }
-        
-        /**
-         * AI가 1, 2차 롤 직후 즉시 획득할 점수가 있는지 확인합니다.
-         */
         function checkEarlyScore(potential, scores) {
             if (scores.yatzy === null && potential.yatzy > 0) return { id: 'yatzy', score: potential.yatzy };
             if (scores.largeStraight === null && potential.largeStraight > 0) return { id: 'largeStraight', score: potential.largeStraight };
             if (scores.fullHouse === null && potential.fullHouse > 0) return { id: 'fullHouse', score: potential.fullHouse };
             return null;
         }
-
-        /**
-         * AI가 어떤 주사위를 유지(Keep)할지 결정합니다.
-         */
         function aiDecideKeep(dice, scores) {
             const counts = new Array(7).fill(0);
             dice.forEach(d => counts[d]++);
-            
-            // 1. Yatzy or 4 of a Kind
             for (let i = 6; i >= 1; i--) {
                 if (counts[i] >= 4 && scores.yatzy === null) return { kept: dice.map(d => d === i), reason: 'Yatzy' };
                 if (counts[i] >= 4 && scores.fourOfAKind === null) return { kept: dice.map(d => d === i), reason: '4 of a Kind' };
             }
-            // 2. Full House (이미 완성됨)
             if (counts.includes(3) && counts.includes(2) && scores.fullHouse === null) return { kept: [true,true,true,true,true], reason: 'Full House' };
-            
-            // 3. Keep 3 of a Kind (Full House 또는 4 of a kind 노리기)
             for (let i = 6; i >= 1; i--) {
                 if (counts[i] === 3) return { kept: dice.map(d => d === i), reason: '3 of a Kind' };
             }
-            // 4. Straights (Keep existing straight)
             const uniqueSorted = Array.from(new Set(dice)).sort().join('');
             if (/12345|23456/.test(uniqueSorted) && scores.largeStraight === null) return { kept: [true,true,true,true,true], reason: 'Large Straight' };
-            // 4b. Small straight (부분집합 유지)
             if (/1234|2345|3456/.test(uniqueSorted) && scores.smallStraight === null) {
                 let straightToKeep = [1,2,3,4];
                 if (/2345/.test(uniqueSorted)) straightToKeep = [2,3,4,5];
                 if (/3456/.test(uniqueSorted)) straightToKeep = [3,4,5,6];
                 return { kept: dice.map(d => straightToKeep.includes(d)), reason: 'Small Straight' };
             }
-            // 5. Keep numbers for upper section (if not filled), highest first
             const upperIds = ['sixes', 'fives', 'fours', 'threes', 'twos', 'aces'];
             for (let i = 6; i >= 1; i--) {
-                const id = upperIds[6-i]; // aces, twos, ... sixes
+                const id = upperIds[6-i]; 
                 if (scores[id] === null && counts[i] > 0) {
                     return { kept: dice.map(d => d === i), reason: `${i}` };
                 }
             }
-            // 6. Keep pairs (3 of a kind 노리기)
              for (let i = 6; i >= 1; i--) {
                 if (counts[i] === 2) return { kept: dice.map(d => d === i), reason: 'Pair' };
             }
-            // 7. Keep highest die (Chance 또는 Upper 노리기)
             const maxDie = Math.max(...dice);
             return { kept: dice.map(d => d === maxDie), reason: 'Highest Die' };
         }
-        
-        /**
-         * AI가 최종 롤 이후 어떤 점수를 선택할지 결정합니다.
-         */
         function aiBestChoice(scores, potential) {
             let bestId = 'chance';
             let maxScore = -1;
-            
-            // 1. 점수 높은 순으로 정렬
             const sortedPotential = Object.entries(potential).sort(([,a],[,b]) => b-a);
-            
             for (const [id, score] of sortedPotential) {
-                if (scores[id] === null) { // 빈 칸 중에서
-                    // 2. 0점 이상인 가장 높은 점수 선택
+                if (scores[id] === null) { 
                     if (score > maxScore) {
                         maxScore = score;
                         bestId = id;
                     }
                 }
             }
-            
-            // 3. 만약 모든 잠재 점수가 0점이라서 maxScore가 0 이하면 (예: Yatzy, LS 등이 0점)
             if (maxScore <= 0) {
-                // 상단 항목(Aces~Sixes)이 비어있으면 0점이라도 기록 (보너스 포기)
                 const upperIds = ['aces', 'twos', 'threes', 'fours', 'fives', 'sixes'];
                 for (const id of upperIds) {
                     if (scores[id] === null) {
                         return { id: id, score: potential[id] };
                     }
                 }
-                 // 상단이 다 찼으면, 하단 항목(Yatzy, LS 등)에 0점 기록
                 const lowerIds = ['yatzy', 'largeStraight', 'smallStraight', 'fullHouse', 'fourOfAKind', 'threeOfAKind', 'chance'];
                 for (const id of lowerIds) {
                      if (scores[id] === null) {
@@ -848,14 +1170,47 @@
                      }
                 }
             }
-            
             return { id: bestId, score: maxScore };
         }
         // --- END AI LOGIC ---
 
+        // Main Menu Listeners
         findMatchBtn.addEventListener('click', findMatch);
         startAiBtn.addEventListener('click', startAiGame);
-        cancelMatchBtn.addEventListener('click', cancelMatch);
+        friendMatchBtn.addEventListener('click', showFriendMenu);
+        cancelMatchBtn.addEventListener('click', cancelMatch); // For random matching
+        
+        // Friend Menu Listeners
+        backToMainMenuBtn.addEventListener('click', init);
+        createRoomBtn.addEventListener('click', createRoom);
+        joinRoomBtn.addEventListener('click', joinRoomWithCode);
+        
+        // Lobby Listeners (New)
+        startGameBtn.addEventListener('click', startGame);
+        cancelRoomBtn.addEventListener('click', cancelRoom); // Host: Deletes room
+        leaveLobbyBtn.addEventListener('click', leaveLobby); // Guest: Leaves room
+        lobbyPlayerList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('kick-btn')) {
+                const guestId = e.target.dataset.kickId;
+                if (guestId) {
+                    kickPlayer(guestId);
+                }
+            }
+        });
+        lobbyCopyCode.addEventListener('click', () => {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(gameId).then(() => {
+                    lobbyCopyCode.textContent = "[복사 완료!]";
+                    setTimeout(() => lobbyCopyCode.textContent = "[코드 복사]", 2000);
+                });
+            } else {
+                // Fallback for non-secure contexts
+                alert("코드가 복사되었습니다: " + gameId);
+            }
+        });
+
+
+        // Game Listeners
         rollButton.addEventListener('click', rollDice);
         diceContainer.addEventListener('click', e => {
             const dieEl = e.target.closest('.die');
@@ -863,11 +1218,12 @@
         });
         
         leaveGameButton.addEventListener('click', async () => {
-            if (gameMode === 'online' && gameId) {
+            if (gameMode.startsWith('online') && gameId) {
                 try {
-                    await deleteDoc(doc(db, "games", gameId));
+                    // Update status to 'finished' instead of deleting, so opponent sees "left" message
+                    await updateDoc(doc(db, "games", gameId), { status: 'finished', message: '상대방이 게임을 떠났습니다.' });
                 } catch(e) {
-                    console.error("Error deleting game doc:", e);
+                    console.error("Error leaving game doc:", e);
                 }
             }
             init();
