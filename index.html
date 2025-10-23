@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yatzy Online 1v1</title>
+    <title>Yatzy Online</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,6 +34,7 @@
             <div id="matchmaking-status" class="text-center my-4"></div>
             <div class="flex justify-center gap-4">
                 <button id="find-match-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md transition-transform transform hover:scale-105">랜덤 매칭 찾기</button>
+                <button id="cancel-match-btn" class="hidden bg-gray-500 hover:bg-gray-600 text-white font-bold py-4 px-8 text-2xl rounded-lg shadow-md">매칭 취소</button>
             </div>
              <div class="text-center mt-4 text-xs text-gray-500">
                 <p>내 플레이어 ID: <span id="player-id"></span></p>
@@ -120,6 +121,7 @@
         const setupScreen = document.getElementById('setup-screen');
         const gameScreen = document.getElementById('game-screen');
         const findMatchBtn = document.getElementById('find-match-btn');
+        const cancelMatchBtn = document.getElementById('cancel-match-btn');
         const matchmakingStatus = document.getElementById('matchmaking-status');
         const diceContainer = document.getElementById('dice-container');
         const rollButton = document.getElementById('roll-button');
@@ -151,14 +153,19 @@
 
         // --- UI Logic ---
         function init() {
-            if (gameUnsubscribe) gameUnsubscribe();
-            if (waitingUnsubscribe) waitingUnsubscribe();
+            if (gameUnsubscribe) { gameUnsubscribe(); gameUnsubscribe = null; }
+            if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
             
             gameScreen.classList.add('hidden');
             setupScreen.classList.remove('hidden');
             gameOverModal.classList.add('hidden');
+            
             findMatchBtn.disabled = false;
+            findMatchBtn.classList.remove('hidden');
             findMatchBtn.textContent = '랜덤 매칭 찾기';
+            
+            cancelMatchBtn.classList.add('hidden');
+
             matchmakingStatus.textContent = '';
             state = {};
             gameId = null;
@@ -166,7 +173,8 @@
         }
 
         async function findMatch() {
-            findMatchBtn.disabled = true;
+            findMatchBtn.classList.add('hidden');
+            cancelMatchBtn.classList.remove('hidden');
             matchmakingStatus.textContent = '상대를 찾고 있습니다...';
             
             const waitingRef = collection(db, "waitingRoom");
@@ -219,8 +227,22 @@
             }
         }
         
+        async function cancelMatch() {
+            if (waitingUnsubscribe) {
+                waitingUnsubscribe();
+                waitingUnsubscribe = null;
+            }
+            try {
+                const myWaitingRef = doc(db, "waitingRoom", userId);
+                await deleteDoc(myWaitingRef);
+            } catch (error) {
+                console.error("Error removing document from waiting room:", error);
+            }
+            init();
+        }
+
         async function findGameAndJoin() {
-            if (waitingUnsubscribe) waitingUnsubscribe();
+            if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
             const gamesRef = collection(db, "games");
             const q = query(gamesRef, where("players", "array-contains", userId), where("status", "==", "active"));
             const snapshot = await getDocs(q);
@@ -231,12 +253,12 @@
         }
 
         function joinGame(newGameId) {
-            if (waitingUnsubscribe) waitingUnsubscribe();
+            if (waitingUnsubscribe) { waitingUnsubscribe(); waitingUnsubscribe = null; }
             gameId = newGameId;
             setupScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
 
-            if(gameUnsubscribe) gameUnsubscribe();
+            if(gameUnsubscribe) { gameUnsubscribe(); gameUnsubscribe = null; }
             gameUnsubscribe = onSnapshot(doc(db, "games", gameId), (doc) => {
                 if (doc.exists()) {
                     state = doc.data();
@@ -411,6 +433,7 @@
         }
 
         findMatchBtn.addEventListener('click', findMatch);
+        cancelMatchBtn.addEventListener('click', cancelMatch);
         rollButton.addEventListener('click', rollDice);
         diceContainer.addEventListener('click', e => {
             const dieEl = e.target.closest('.die');
